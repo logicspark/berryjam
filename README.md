@@ -1,20 +1,19 @@
 <div align="center">
   <h1>Berryjam</h1>
-</div>
 
-<p align=center>Scan your Vue.js codebase for component visibility and actional insights</p>
-<p align=center>Berryjam is a Vue.js component analytics tool to scan your project for components to monitor their usages. Component visibility allows for effective team communication and provides opportunities to optimize your source code.</p>
-<p align=center>Currently supporting JavaScript / TypeScript and Vue.js (2.5.X and above). The CLI scan is more accurate on TypeScript project and does not yet support Nuxt.</p>
-<br>
-
-<div align="center">
-  <a href="#overview">Overview</a> - 
-  <a href="#">Quick Start (to Web Documentation)</a> - 
-  <a href="#community">Community </a> - 
-  <a href="#discord">Support (to Berryjam Discord)</a> -
-  <a href="#license">License</a>
+  Scan your Vue.js codebase for component visibility and actional insights.
+  <br/><br/>
+  Berryjam is a Vue.js component analytics tool to scan your project for components to monitor their usages. Component visibility allows for effective team communication and provides opportunities to optimize your source code.
+  <br/><br/>
+  Currently supporting JavaScript / TypeScript and Vue.js (2.5.X and above). The CLI scan is more accurate on TypeScript project and does not yet support Nuxt.
+  <br/><br/>
+  
+  [Overview](#sunglasses-overview) - [Quick Start (to Web Documentation)](#) - [Community](#busts_in_silhouette-community) - [Support (to Berryjam Discord)][discord] - [License](books-license)
+  
+  [![License](https://img.shields.io/badge/license-ELv2-brightgreen)](LICENSE.md)
+  [![Discord](https://img.shields.io/discord/1103946598981054514?label=discord)][discord]
+  [![Twitter](https://img.shields.io/twitter/follow/berryjamdev?label=Berryjamdev&style=social)][twitter] 
 </div>
-<br>
 
 ## :sunglasses: Overview
 
@@ -24,7 +23,7 @@ After the scan, Berryjam triggers your Analytic Dashboard for transparency and i
 
 ## :busts_in_silhouette: Community
 
-- [Twitter](https://twitter.com/Berryjamdev): Follow our official Twitter account
+- [Twitter](twitter): Follow our official Twitter account
 - [Discord](discord): A place where you can get support, feedback or just want to meet and hang out. 
 - [GitHub](https://github.com/logicspark/berryjam): If you wish, you may want to request features here too. 
 - For any other inquiries, you may reach out to us at connect@berryjam.dev. 
@@ -35,6 +34,7 @@ Berryjam code is licensed under the terms of the [Elastic License 2.0](LICENSE.m
 
 You are not allowed to provide Berryjam to third parties as a hosted or managed service without explicit approval.
 
---
+---
 
 [discord]: https://discord.gg/8SgTS4QdCd
+[twitter]: https://twitter.com/Berryjamdev
