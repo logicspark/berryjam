@@ -23,8 +23,8 @@ After the scan, Berryjam triggers your Analytic Dashboard for transparency and i
 
 ## :busts_in_silhouette: Community
 
-- [Twitter](twitter): Follow our official Twitter account
-- [Discord](discord): A place where you can get support, feedback or just want to meet and hang out. 
+- [Twitter][twitter]: Follow our official Twitter account
+- [Discord][discord]: A place where you can get support, feedback or just want to meet and hang out. 
 - [GitHub](https://github.com/logicspark/berryjam): If you wish, you may want to request features here too. 
 - For any other inquiries, you may reach out to us at connect@berryjam.dev. 
 
