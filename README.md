@@ -1,5 +1,8 @@
 <div align="center">
-  <h1>Berryjam</h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/img/berryjam-logo-dark.png">
+    <img alt="Berryjam" src="./assets/img/berryjam-logo-light.png">
+  </picture>
 
   Scan your Vue.js codebase for component visibility and actional insights.
   <br/><br/>
