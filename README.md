@@ -1,9 +1,11 @@
 <div align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./assets/img/berryjam-logo-dark.png">
-    <img alt="Berryjam" src="./assets/img/berryjam-logo-light.png">
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/img/berryjam_logo_dark.png">
+    <img alt="Berryjam" src="./assets/img/berryjam_logo_light.png">
   </picture>
-
+  
+  <br />
+  <hr/>
   Scan your Vue.js codebase for component visibility and actional insights.
   <br/><br/>
   Berryjam is a Vue.js component analytics tool to scan your project for components to monitor their usages. Component visibility allows for effective team communication and provides opportunities to optimize your source code.
