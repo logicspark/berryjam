@@ -24,6 +24,78 @@
 
 Berryjam scans for components in your source code to output a JSON file. Here is a sample JSON: 
 
+<details>
+  <summary>Simple JSON</summary>
+
+```javascript
+[
+	{
+    	"tag": "Overlay",
+    	"total": 1,
+    	"tagType": "",
+    	"dependencies": {},
+    	"tagFrom": "@/components/ui/Overlay.vue",
+    	"details": [
+      		{
+				"tag": "Overlay",
+				"source": "/Users/name/folder/koel-master/resources/assets/js/App.vue",
+				"rows": [
+					2
+				],
+				"property": {
+				"dataLastModified": "",
+				"lastModified": "",
+				"created": ""
+				},
+				"total": 1
+			}
+		],
+			"tagProperty": {
+				"dataLastModified": "",
+				"lastModified": "",
+				"created": ""
+			},
+			"children": {
+				"total": 0,
+				"tags": [],
+				"source": ""
+			}
+		},
+	{
+		"tag": "DialogBox",
+		"total": 1,
+		"tagType": "",
+		"dependencies": {},
+		"tagFrom": "@/components/ui/DialogBox.vue",
+		"details": [
+		{
+			"tag": "DialogBox",
+			"source": "/Users/name/folder/koel-master/resources/assets/js/App.vue",
+			"rows": [
+				3
+			],
+			"property": {
+			"dataLastModified": "",
+			"lastModified": "",
+			"created": ""
+			},
+			"total": 1
+		}
+		],
+			"tagProperty": {
+				"dataLastModified": "",
+				"lastModified": "",
+				"created": ""
+			},
+			"children": {
+				"total": 0,
+				"tags": [],
+				"source": ""
+			}
+	},
+];
+```
+</details>
 After the scan, Berryjam triggers your Analytic Dashboard for transparency and insights. Here is a sample Dashboard: 
 
 ## :busts_in_silhouette: Community
