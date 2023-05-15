@@ -22,7 +22,7 @@
 
 ## :sunglasses: Overview
 
-Berryjam scans for components in your source code to output a JSON file. Here is a sample JSON: 
+Berryjam scans for components in your source code to output a JSON file. Here is a sample JSON:
 
 <details>
   <summary>Simple JSON</summary>
@@ -30,80 +30,79 @@ Berryjam scans for components in your source code to output a JSON file. Here is
 ```javascript
 [
 	{
-    	"tag": "Overlay",
-    	"total": 1,
-    	"tagType": "",
-    	"dependencies": {},
-    	"tagFrom": "@/components/ui/Overlay.vue",
-    	"details": [
-      		{
-				"tag": "Overlay",
-				"source": "/Users/name/folder/koel-master/resources/assets/js/App.vue",
-				"rows": [
-					2
-				],
-				"property": {
-				"dataLastModified": "",
-				"lastModified": "",
-				"created": ""
+		tag: "Overlay",
+		total: 1,
+		tagType: "",
+		dependencies: {},
+		tagFrom: "@/components/ui/Overlay.vue",
+		details: [
+			{
+				tag: "Overlay",
+				source: "/Users/name/folder/koel-master/resources/assets/js/App.vue",
+				rows: [2],
+				property: {
+					dataLastModified: "",
+					lastModified: "",
+					created: "",
 				},
-				"total": 1
-			}
-		],
-			"tagProperty": {
-				"dataLastModified": "",
-				"lastModified": "",
-				"created": ""
+				total: 1,
 			},
-			"children": {
-				"total": 0,
-				"tags": [],
-				"source": ""
-			}
+		],
+		tagProperty: {
+			dataLastModified: "",
+			lastModified: "",
+			created: "",
 		},
+		children: {
+			total: 0,
+			tags: [],
+			source: "",
+		},
+	},
 	{
-		"tag": "DialogBox",
-		"total": 1,
-		"tagType": "",
-		"dependencies": {},
-		"tagFrom": "@/components/ui/DialogBox.vue",
-		"details": [
-		{
-			"tag": "DialogBox",
-			"source": "/Users/name/folder/koel-master/resources/assets/js/App.vue",
-			"rows": [
-				3
-			],
-			"property": {
-			"dataLastModified": "",
-			"lastModified": "",
-			"created": ""
+		tag: "DialogBox",
+		total: 1,
+		tagType: "",
+		dependencies: {},
+		tagFrom: "@/components/ui/DialogBox.vue",
+		details: [
+			{
+				tag: "DialogBox",
+				source: "/Users/name/folder/koel-master/resources/assets/js/App.vue",
+				rows: [3],
+				property: {
+					dataLastModified: "",
+					lastModified: "",
+					created: "",
+				},
+				total: 1,
 			},
-			"total": 1
-		}
 		],
-			"tagProperty": {
-				"dataLastModified": "",
-				"lastModified": "",
-				"created": ""
-			},
-			"children": {
-				"total": 0,
-				"tags": [],
-				"source": ""
-			}
+		tagProperty: {
+			dataLastModified: "",
+			lastModified: "",
+			created: "",
+		},
+		children: {
+			total: 0,
+			tags: [],
+			source: "",
+		},
 	},
 ];
 ```
+
 </details>
-After the scan, Berryjam triggers your Analytic Dashboard for transparency and insights. Here is a sample Dashboard: 
+After the scan, Berryjam triggers your Analytic Dashboard for transparency and insights. Here is a sample Dashboard:
+
+![berryjam - dashboard](./assets/img/berryjam-dashboard.svg)
 
 ## :busts_in_silhouette: Community
 
 - [Twitter][twitter]: Follow our official Twitter account
-- [Discord][discord]: A place where you can get support, feedback or just want to meet and hang out. 
-- [GitHub](https://github.com/logicspark/berryjam): If you wish, you may want to request features here too. 
-- For any other inquiries, you may reach out to us at connect@berryjam.dev. 
+- [Discord][discord]: A place where you can get support, feedback or just want to meet and hang out.
+- [GitHub](https://github.com/logicspark/berryjam): If you wish, you may want to request features here too.
+- For any other inquiries, you may reach out to us at connect@berryjam.dev.
 
 ## :books: License
 
