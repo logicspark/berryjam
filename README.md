@@ -13,7 +13,7 @@
   Currently supporting JavaScript / TypeScript and Vue.js (2.5.X and above). The CLI scan is more accurate on TypeScript project and does not yet support Nuxt.
   <br/><br/>
   
-  [Overview](#sunglasses-overview) - [Quick Start (to Web Documentation)](#) - [Community](#busts_in_silhouette-community) - [Support (to Berryjam Discord)][discord] - [License](#books-license)
+  [Overview](#sunglasses-overview) - [Quick Start (to Web Documentation)][documentation] - [Community](#busts_in_silhouette-community) - [Support (to Berryjam Discord)][discord] - [License](#books-license)
   
   [![License](https://img.shields.io/badge/license-ELv2-brightgreen)](LICENSE.md)
   [![Discord](https://img.shields.io/discord/1103946598981054514?label=discord)][discord]
@@ -114,3 +114,4 @@ You are not allowed to provide Berryjam to third parties as a hosted or managed 
 
 [discord]: https://discord.gg/8SgTS4QdCd
 [twitter]: https://twitter.com/Berryjamdev
+[documentation]: https://doc.berryjam.dev
