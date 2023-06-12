@@ -10,7 +10,7 @@
   <br/><br/>
   Berryjam is a Vue.js component analytics tool to scan your project for components to monitor their usages. Component visibility allows for effective team communication and provides opportunities to optimize your source code.
   <br/><br/>
-  Currently supporting JavaScript / TypeScript and Vue.js (2.5.X and above). The CLI scan is more accurate on TypeScript project and does not yet support Nuxt.
+  Currently supporting JavaScript / TypeScript, Vue.js (3.X) and Nuxt (3.X). The CLI scan is more accurate on TypeScript project.
   <br/><br/>
   
   [Overview](#sunglasses-overview) - [Quick Start (to Web Documentation)][documentation] - [Community](#busts_in_silhouette-community) - [Support (to Berryjam Discord)][discord] - [License](#books-license)
@@ -29,66 +29,74 @@ Berryjam scans for components in your source code to output a JSON file. Here is
 
 ```javascript
 [
-	{
-		tag: "Overlay",
-		total: 1,
-		tagType: "",
-		dependencies: {},
-		tagFrom: "@/components/ui/Overlay.vue",
-		details: [
-			{
-				tag: "Overlay",
-				source: "/Users/name/folder/koel-master/resources/assets/js/App.vue",
-				rows: [2],
-				property: {
-					dataLastModified: "",
-					lastModified: "",
-					created: "",
-				},
-				total: 1,
-			},
-		],
-		tagProperty: {
-			dataLastModified: "",
-			lastModified: "",
-			created: "",
-		},
-		children: {
-			total: 0,
-			tags: [],
-			source: "",
-		},
-	},
-	{
-		tag: "DialogBox",
-		total: 1,
-		tagType: "",
-		dependencies: {},
-		tagFrom: "@/components/ui/DialogBox.vue",
-		details: [
-			{
-				tag: "DialogBox",
-				source: "/Users/name/folder/koel-master/resources/assets/js/App.vue",
-				rows: [3],
-				property: {
-					dataLastModified: "",
-					lastModified: "",
-					created: "",
-				},
-				total: 1,
-			},
-		],
-		tagProperty: {
-			dataLastModified: "",
-			lastModified: "",
-			created: "",
-		},
-		children: {
-			total: 0,
-			tags: [],
-			source: "",
-		},
-	},
+    {
+        tag: "Overlay",
+        total: 1,
+        type: "internal",
+        source: {
+            filePath: "@/components/ui/Overlay.vue",
+            fileProperty: {
+                dataLastModified: "",
+                lastModified: "",
+                created: "",
+                createdBy: "",
+                updatedBy: ""
+            }
+        },
+        details: [
+            {
+                source: "/Users/name/folder/koel-master/resources/assets/js/App.vue",
+                rows: [2],
+                property: {
+                    dataLastModified: "",
+                    lastModified: "",
+                    created: "",
+                    createdBy: "",
+                    updatedBy: ""
+                },
+                total: 1,
+            },
+        ],
+        children: {
+            total: 0,
+            tags: [],
+            source: "",
+        },
+    },
+    {
+        tag: "DialogBox",
+        total: 1,
+        type: "internal",
+        source: {
+            filePath: "@/components/ui/DialogBox.vue",
+            fileProperty: {
+                dataLastModified: "",
+                lastModified: "",
+                created: "",
+                createdBy: "",
+                updatedBy: ""
+            }
+        },
+        details: [
+            {
+                source: "/Users/name/folder/koel-master/resources/assets/js/App.vue",
+                rows: [3],
+                property: {
+                    dataLastModified: "",
+                    lastModified: "",
+                    created: "",
+                    createdBy: "",
+                    updatedBy: ""
+                },
+                total: 1,
+            },
+        ],
+        children: {
+            total: 0,
+            tags: [],
+            source: "",
+        },
+    },
 ];
 ```
 
@@ -114,4 +122,4 @@ You are not allowed to provide Berryjam to third parties as a hosted or managed 
 
 [discord]: https://discord.gg/8SgTS4QdCd
 [twitter]: https://twitter.com/Berryjamdev
-[documentation]: https://doc.berryjam.dev
+[documentation]: https://docs.berryjam.dev
