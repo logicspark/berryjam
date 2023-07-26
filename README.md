@@ -1,28 +1,41 @@
 <div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./assets/img/berryjam_logo_dark.png" width="500">
-    <img alt="Berryjam" src="./assets/img/berryjam_logo_light.png" width="500">
-  </picture>
-  
+  <a href="https://www.berryjam.dev/" target="_blank">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="./assets/img/berryjam_logo_dark.png" width="500">
+      <img alt="Berryjam" src="./assets/img/berryjam_logo_light.png" width="500">
+    </picture>
+  </a>
+</div>
+
+<h1 align="center">UI Components Anaylzer for Vue 3 & Nuxt</h1>
+
+<div align="center">
+  Scan your Vue.js codebase for component visibility and actionable insights.
+</div>
+
+<p align="center">
+  <br/>
+  <a href="https://docs.berryjam.dev" rel="dofollow"><strong>Explore the docs »</strong></a>
   <br />
-  <hr/>
-  Scan your Vue.js codebase for component visibility and actional insights.
-  <br/><br/>
-  Berryjam is a Vue.js component analytics tool to scan your project for components to monitor their usages. Component visibility allows for effective team communication and provides opportunities to optimize your source code.
-  <br/><br/>
-  Currently supporting JavaScript / TypeScript, Vue.js (3.X) and Nuxt (3.X). The CLI scan is more accurate on TypeScript project.
-  <br/><br/>
+</p>
+
+<div align="center">
   
-  [Overview](#sunglasses-overview) - [Quick Start (to Web Documentation)][documentation] - [Community](#busts_in_silhouette-community) - [Support (to Berryjam Discord)][discord] - [License](#books-license)
+  [Quick Start (to Web Documentation)][documentation] - [Community](#busts_in_silhouette-community) - [Support (to Berryjam Discord)][discord] - [License](#books-license)
+  
+  Available in: Vue.js (3.X), Nuxt (3.X)
   
   [![License](https://img.shields.io/badge/license-ELv2-brightgreen)](LICENSE.md)
   [![Discord](https://img.shields.io/discord/1103946598981054514?label=discord)][discord]
   [![Twitter](https://img.shields.io/twitter/follow/berryjamdev?label=Berryjamdev&style=social)][twitter] 
 </div>
 
-## :sunglasses: Overview
+## :sparkles: Description
+Berryjam is a Vue.js component analytics tool to scan your project for components to monitor their usage. Component visibility allows for effective team communication and provides opportunities to optimize your source code.
 
-Berryjam scans for components in your source code to output a JSON file. Here is a sample JSON:
+## :sunglasses: How It Works
+
+Berryjam scans for components in your source code to output a JSON file.
 
 <details>
   <summary>Simple JSON</summary>
@@ -101,7 +114,7 @@ Berryjam scans for components in your source code to output a JSON file. Here is
 ```
 
 </details>
-After the scan, Berryjam triggers your Analytic Dashboard for transparency and insights. Here is a sample Dashboard:
+After the scan, Berryjam launches an Analytic Dashboard in your web browser for transparency and insights.Here is a sample Dashboard:
 
 ![berryjam - dashboard](./assets/img/berryjam-dashboard.svg)
 
