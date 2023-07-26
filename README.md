@@ -21,7 +21,7 @@
 
 <div align="center">
   
-  [Quick Start (to Web Documentation)][documentation] - [Community](#busts_in_silhouette-community) - [Support (to Berryjam Discord)][discord] - [License](#books-license)
+  [Quick Start](#rocket-quick-start) - [Community](#busts_in_silhouette-community) - [Support (to Berryjam Discord)][discord] - [License](#books-license)
   
   Available in: Vue.js (3.X), Nuxt (3.X)
 
@@ -31,12 +31,20 @@
   [![Twitter](https://img.shields.io/twitter/follow/berryjamdev?label=Berryjamdev&style=social)][twitter] 
 </div>
 
-## :sparkles: Description
+## :sparkles: Overview
 Berryjam is a Vue.js component analytics tool to scan your project for components to monitor their usage. Component visibility allows for effective team communication and provides opportunities to optimize your source code.
 
-## :sunglasses: How It Works
-
-Berryjam scans for components in your source code to output a JSON file.
+## :rocket: Quick Start
+To get started, navigate to your project root folder and run the berryjam npm command
+```sh
+npx berryjam@latest scan .
+```
+If you do not have a project or want to test out Berryjam, clone or download the open source [Koel](https://github.com/koel/koel) library instead
+```sh
+git clone https://github.com/koel/koel.git
+```
+<br/>
+Berryjam will scan for components in your source code and output a JSON file.
 
 <details>
   <summary>Simple JSON</summary>
@@ -115,7 +123,7 @@ Berryjam scans for components in your source code to output a JSON file.
 ```
 
 </details>
-After the scan, Berryjam launches an Analytic Dashboard in your web browser for transparency and insights.Here is a sample Dashboard:
+After the scan, Berryjam automatically launches an Analytic Dashboard in your web browser for transparency and insights. Here is a sample Dashboard:
 
 ![berryjam - dashboard](./assets/img/berryjam-dashboard.svg)
 
@@ -132,7 +140,6 @@ Berryjam code is licensed under the terms of the [Elastic License 2.0](LICENSE.m
 
 You are not allowed to provide Berryjam to third parties as a hosted or managed service without explicit approval.
 
----
 
 [discord]: https://discord.gg/8SgTS4QdCd
 [twitter]: https://twitter.com/Berryjamdev
