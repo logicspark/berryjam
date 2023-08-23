@@ -73,11 +73,13 @@ npx berryjam@latest scan . --local
 ```
 
 The terminal will prompt you to install Berryjam CLI (latest version). Once the scan is complete, Berryjam CLI will automatically open a localhost web app. By default, the port is configured for port 3000. If it is unavailable, please change your port with this [command](https://docs.berryjam.dev/cli.html#scan-to-local).
-<br/>
+
+### JSON Output
+
 Berryjam will scan for components in your source code and output a JSON file.
 
 <details>
-  <summary>Simple JSON</summary>
+  <summary>Sample JSON</summary>
 
 ```javascript
 [
@@ -153,6 +155,8 @@ Berryjam will scan for components in your source code and output a JSON file.
 ```
 
 </details>
+<br/>
+
 After the scan, an Analytic Dashboard is generated for transparency and insights. Here is a sample Dashboard:
 
 ![berryjam - dashboard](./assets/img/berryjam-dashboard.svg)
