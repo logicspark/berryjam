@@ -153,7 +153,7 @@ Berryjam will scan for components in your source code and output a JSON file.
 ```
 
 </details>
-After the scan, an Analytic Dashboard is generated in your web browser for transparency and insights. Here is a sample Dashboard:
+After the scan, an Analytic Dashboard is generated for transparency and insights. Here is a sample Dashboard:
 
 ![berryjam - dashboard](./assets/img/berryjam-dashboard.svg)
 
