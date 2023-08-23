@@ -35,14 +35,44 @@
 Berryjam is a Vue.js component analytics tool to scan your project for components to monitor their usage. Component visibility allows for effective team communication and provides opportunities to optimize your source code.
 
 ## :rocket: Quick Start
-To get started, navigate to your project root folder and run the berryjam npm command
-```sh
-npx berryjam@latest scan .
-```
-If you do not have a project or want to test out Berryjam, clone or download the open source [Koel](https://github.com/koel/koel) library instead
+
+### Scan with Berryjam CLI - Cloud
+
+First, you will need to create a [Berryjam account](https://app.berryjam.dev/register) and workspace. After that, please choose a project you would like to scan. For demonstration purposes, we will be scanning an open-source project called [Koel](https://github.com/koel/koel). Clone or download it to a convenient location to get started.
+
 ```sh
 git clone https://github.com/koel/koel.git
 ```
+
+Now, login with your Berryjam account on your preferred terminal. You will be prompted to input email and password.
+
+```sh
+npx berryjam@latest login
+```
+
+Then, run the scan command with Berryjam scan on the project root directory:
+
+```sh
+npx berryjam@latest scan .
+```
+
+The terminal will prompt you to install Berryjam CLI (latest version). After that, the CLI will prompt you to confirm the workspace you wish to scan to. Once the scan is complete, Berryjam CLI will provide your workspace URL to click on.
+
+### Scan with Berryjam CLI - Offline
+
+Because we will be installing and running Berryjam CLI in a single command, please choose a project you would like to scan. For demonstration purposes, we will be scanning an open-source project called [Koel](https://github.com/koel/koel). Clone or download it to a convenient location to get started.
+
+```sh
+git clone https://github.com/koel/koel.git
+```
+
+Now, run the scan command with Berryjam scan on the project root directory:
+
+```sh
+npx berryjam@latest scan . --local
+```
+
+The terminal will prompt you to install Berryjam CLI (latest version). Once the scan is complete, Berryjam CLI will automatically open a localhost web app. By default, the port is configured for port 3000. If it is unavailable, please change your port with this [command](https://docs.berryjam.dev/cli.html#scan-to-local).
 <br/>
 Berryjam will scan for components in your source code and output a JSON file.
 
@@ -123,7 +153,7 @@ Berryjam will scan for components in your source code and output a JSON file.
 ```
 
 </details>
-After the scan, Berryjam automatically launches an Analytic Dashboard in your web browser for transparency and insights. Here is a sample Dashboard:
+After the scan, an Analytic Dashboard is generated in your web browser for transparency and insights. Here is a sample Dashboard:
 
 ![berryjam - dashboard](./assets/img/berryjam-dashboard.svg)
 
