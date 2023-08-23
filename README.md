@@ -97,7 +97,7 @@ Berryjam will scan for components in your source code and output a JSON file.
         },
         details: [
             {
-                source: "/Users/name/folder/koel-master/resources/assets/js/App.vue",
+                source: "/koel-master/resources/assets/js/App.vue",
                 rows: [2],
                 property: {
                     dataLastModified: "",
@@ -131,7 +131,7 @@ Berryjam will scan for components in your source code and output a JSON file.
         },
         details: [
             {
-                source: "/Users/name/folder/koel-master/resources/assets/js/App.vue",
+                source: "/koel-master/resources/assets/js/App.vue",
                 rows: [3],
                 property: {
                     dataLastModified: "",
