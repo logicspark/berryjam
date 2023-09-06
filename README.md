@@ -47,13 +47,13 @@ git clone https://github.com/koel/koel.git
 Now, login with your Berryjam account on your preferred terminal. You will be prompted to input email and password.
 
 ```sh
-npx berryjam@latest login
+npx berryjam-cli@latest login
 ```
 
 Then, run the scan command with Berryjam scan on the project root directory:
 
 ```sh
-npx berryjam@latest scan .
+npx berryjam-cli@latest scan .
 ```
 
 The terminal will prompt you to install Berryjam CLI (latest version). After that, the CLI will prompt you to confirm the workspace you wish to scan to. Once the scan is complete, Berryjam CLI will provide your workspace URL to click on.
@@ -69,7 +69,7 @@ git clone https://github.com/koel/koel.git
 Now, run the scan command with Berryjam scan on the project root directory:
 
 ```sh
-npx berryjam@latest scan . --local
+npx berryjam-cli@latest scan . --local
 ```
 
 The terminal will prompt you to install Berryjam CLI (latest version). Once the scan is complete, Berryjam CLI will automatically open a localhost web app. By default, the port is configured for port 3000. If it is unavailable, please change your port with this [command](https://docs.berryjam.dev/cli.html#scan-to-local).
