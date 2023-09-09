@@ -26,7 +26,7 @@
   Available in: Vue.js (3.X), Nuxt (3.X)
 
   [![NPM](https://img.shields.io/npm/v/berryjam-cli)](https://www.npmjs.com/package/berryjam-cli)
-  [![License](https://img.shields.io/npm/l/berryjam)](LICENSE.md)
+  [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE.md)
   [![Discord](https://img.shields.io/discord/1103946598981054514?label=discord)][discord]
   [![Twitter](https://img.shields.io/twitter/follow/berryjamdev?label=Berryjamdev&style=social)][twitter] 
 </div>
