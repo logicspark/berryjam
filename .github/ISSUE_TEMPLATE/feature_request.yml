@@ -1,0 +1,43 @@
+name: ✨ Feature Request
+description: "Suggest a new feature for Berryjam"
+title: "✨ "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for bringing new ideas to Berryjam! 🎉
+
+        Before you continue to submit a feature request though, please help us by searching if the idea already exist in [issues](../labels/enhancement). Doing this will keep the issues clean and allow us to focus on building the great features you suggested! 🙏
+        
+  - type: textarea
+    id: description
+    validations:
+      required: true
+    attributes:
+      label: "Description"
+      description: "A clear and concise description of what the feature is."
+      placeholder: "I would like to see..."
+  - type: textarea
+    id: problem
+    validations:
+      required: true
+    attributes:
+      label: "Why is this feature needed? Is there a problem that you faced?"
+      description: "Why do you want to see the feature in Berryjam? Please include any problems that you would like to solve through this feature"
+      placeholder: "This feature will help to..."
+  - type: textarea
+    id: solution
+    validations:
+      required: true
+    attributes:
+      label: "What is the solution you have in mind?"
+      description: "A clear and concise description of what you want to happen."
+      placeholder: "I want this feature to, ..."
+  - type: textarea
+    id: additional-info
+    validations:
+      required: false
+    attributes:
+      label: "Additional Information"
+      description: "Any other context or information you would like to add"

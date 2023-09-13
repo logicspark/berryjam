@@ -11,170 +11,296 @@
 
 <div align="center">
   Scan your Vue.js codebase for component visibility and actionable insights.
-</div>
-
-<p align="center">
-  <br/>
-  <a href="https://docs.berryjam.dev" rel="dofollow"><strong>Explore the docs »</strong></a>
-  <br />
-</p>
+</div>  
+<br/>
 
 <div align="center">
   
-  [Quick Start](#rocket-quick-start) - [Community](#busts_in_silhouette-community) - [Support (to Berryjam Discord)][discord] - [License](#books-license)
+  [Issues](../../issues) - [Join our Discord][discord] - [License](#page_facing_up-license) - [Berryjam Cloud][berryjam]
   
-  Available in: Vue.js (3.X), Nuxt (3.X)
+  Available for: Vue.js (3.X), Nuxt (3.X)
 
-  [![NPM](https://img.shields.io/npm/v/berryjam-cli)](https://www.npmjs.com/package/berryjam-cli)
-  [![License](https://img.shields.io/npm/l/berryjam-cli)](LICENSE.md)
-  [![Discord](https://img.shields.io/discord/1103946598981054514?label=discord)][discord]
+  [![NPM](https://img.shields.io/npm/v/berryjam)](https://www.npmjs.com/package/berryjam)
+  [![License](https://img.shields.io/badge/license-MIT-blue)](/LICENSE.md)
+  [![Discord](https://img.shields.io/badge/chat-on_discord-826deb)][discord]
   [![Twitter](https://img.shields.io/twitter/follow/berryjamdev?label=Berryjamdev&style=social)][twitter] 
 </div>
 
-## :sparkles: Overview
-Berryjam is a Vue.js component analytics tool to scan your project for components to monitor their usage. Component visibility allows for effective team communication and provides opportunities to optimize your source code.
 
-## :rocket: Quick Start
+# :book: Table of Contents
+1. [Why Berryjam](#star-why-berryjam)
+2. [Features](#sparkles-features)
+3. [Limitations](#see_no_evil-limitations)
+4. [Getting Started](#rocket-getting-started)
+5. [Development](#construction-development)
+6. [Contributing](#muscle-contributing)
+7. [Need Help?](#raising_hand-need-help)
+8. [License](#page_facing_up-license)
+9. [Acknowledgement](#acknowledgement)
 
-### Scan with Berryjam CLI - Cloud
+# :star: Why Berryjam
 
-First, you will need to create a [Berryjam account](https://app.berryjam.dev/register) and workspace. After that, please choose a project you would like to scan. For demonstration purposes, we will be scanning an open-source project called [Koel](https://github.com/koel/koel). Clone or download it to a convenient location to get started.
+<!-- TODO: Video Demo of Running on Terminal -->
+
+Berryjam provides a simple way to identify your component usage, props and their relationships. Based on the output from your scan, you can create your own dashboard and run analysis across your project components to improve communications across your development team.
+
+# :sparkles: Features
+<table>
+  <tr>
+    <td><p>1. Scan your project for components</p><img src="./assets/img/feature-scan-project.jpg" /></td>
+    <td><p>2. Analyze components and their relationships</p><img src="./assets/img/feature-analyze-components.jpg" /></td>
+  </tr>
+  <tr>
+    <td><p>3. Scan Git log for author and datetime</p><img src="./assets/img/feature-scan-gitlog.jpg" /></td>
+    <td><p>4. Automatically detect props for each component</p><img src="./assets/img/feature-detect-props.jpg" /></td>
+  </tr>
+</table>
+
+# :see_no_evil: Limitations
+
+- Berryjam is not compatible with Vue 2 or lower versions. 
+
+- Berryjam has been fully tested to work with node version from `16.0` to `18.17.1 (LTS)`. Versions above `18.17.1 (LTS)` should work as well but have not been fully tested.
+
+# :rocket: Getting Started
+
+## Install Berryjam
+
+There are a few ways you can install Berryjam, namely npm, pnpm and yarn. If you install via npm, here is a single cmd to install this library
 
 ```sh
-git clone https://github.com/koel/koel.git
+  npm install berryjam
 ```
 
-Now, login with your Berryjam account on your preferred terminal. You will be prompted to input email and password.
+#### Other options
+
+- pnpm
 
 ```sh
-npx berryjam-cli@latest login
+  pnpm add berryjam
 ```
 
-Then, run the scan command with Berryjam scan on the project root directory:
+- yarn
 
 ```sh
-npx berryjam-cli@latest scan .
+  yarn add berryjam
 ```
 
-The terminal will prompt you to install Berryjam CLI (latest version). After that, the CLI will prompt you to confirm the workspace you wish to scan to. Once the scan is complete, Berryjam CLI will provide your workspace URL to click on.
+## Usage
 
-### Scan with Berryjam CLI - Offline
+To start scanning your project, you will first need to import `VueScanner` class and create its instance.
 
-Because we will be installing and running Berryjam CLI in a single command, please choose a project you would like to scan. For demonstration purposes, we will be scanning an open-source project called [Koel](https://github.com/koel/koel). Clone or download it to a convenient location to get started.
+```typescript
+import { homedir } from 'os';
+import VueScanner from "berryjam"
+import type { VueScannerOption, ComponentProfile } from "berryjam"
+...
+const pathToScan = '../your-vue-project-path';
+const option: VueScannerOption = {
+  // this folder will be used to store the exact versions of babel & vue compiler
+  appDir: `${homedir()}/.vueScanner`,
+  // ... any other options
+}
+// Create a new VueScanner instance with the required parameters
+const vueScanner = new VueScanner(pathToScan, option);
+...
+// To start scanning without async/await
+vueScanner.scan().then(result => {
+  // the result will be an array of ComponentProfile
+  // log to see the result
+  console.log(result);
+})
 
-```sh
-git clone https://github.com/koel/koel.git
+// or, You can use async/await
+async function whatEverFunction() {
+  const result = await vueScanner.scan();
+}
+
+
 ```
+For more details on `VueScanner` class, please check out [below](#VueScanner-Overview).
 
-Now, run the scan command with Berryjam scan on the project root directory:
+### Output
 
-```sh
-npx berryjam-cli@latest scan . --local
-```
+By calling `scan` method, it will scan for Vue components and return `ComponentProfile[]`. If you `console.log` the output, here is an example of how it may look. For demonstration purposes, we have scanned an open-source project called [Koel](https://github.com/koel/koel).
 
-The terminal will prompt you to install Berryjam CLI (latest version). Once the scan is complete, Berryjam CLI will automatically open a localhost web app. By default, the port is configured for port 3000. If it is unavailable, please change your port with this [command](https://docs.berryjam.dev/cli.html#scan-to-local).
+<details open>
+  <summary>Sample Result</summary>
 
-### JSON Output
-
-Berryjam will scan for components in your source code and output a JSON file.
-
-<details>
-  <summary>Sample JSON</summary>
-
-```javascript
+```json
 [
-    {
-        tag: "Overlay",
-        total: 1,
-        type: "internal",
-        source: {
-            filePath: "@/components/ui/Overlay.vue",
-            fileProperty: {
-                dataLastModified: "",
-                lastModified: "",
-                created: "",
-                createdBy: "",
-                updatedBy: ""
-            }
-        },
-        details: [
-            {
-                source: "/koel-master/resources/assets/js/App.vue",
-                rows: [2],
-                property: {
-                    dataLastModified: "",
-                    lastModified: "",
-                    created: "",
-                    createdBy: "",
-                    updatedBy: ""
-                },
-                total: 1,
-            },
-        ],
-        children: {
-            total: 0,
-            tags: [],
-            source: "",
-        },
+  {
+    "name": "PlaybackControls",
+    "type": "internal",
+    "total": 1,
+    "source": {
+      "path": "/resources/assets/js/components/layout/app-footer/FooterPlaybackControls.vue",
+      "property": {
+        "dataLastModified": "Sun Feb 04 2018",
+        "lastModified": "Sun Feb 04 2018",
+        "created": "2018-02-02T21:12:19.000Z",
+        "createdBy": "Phan An",
+        "updatedBy": "Phan An"
+      }
     },
-    {
-        tag: "DialogBox",
-        total: 1,
-        type: "internal",
-        source: {
-            filePath: "@/components/ui/DialogBox.vue",
-            fileProperty: {
-                dataLastModified: "",
-                lastModified: "",
-                created: "",
-                createdBy: "",
-                updatedBy: ""
-            }
-        },
-        details: [
-            {
-                source: "/koel-master/resources/assets/js/App.vue",
-                rows: [3],
-                property: {
-                    dataLastModified: "",
-                    lastModified: "",
-                    created: "",
-                    createdBy: "",
-                    updatedBy: ""
-                },
-                total: 1,
-            },
+    "usageLocations": [
+      {
+        "name": "PlaybackControls",
+        "source": "/resources/assets/js/components/layout/app-footer/FooterPlaybackControls.vue",
+        "destination": "/resources/assets/js/components/layout/app-footer/index.vue",
+        "rows": [
+          9
         ],
-        children: {
-            total: 0,
-            tags: [],
-            source: "",
-        },
+        "fileInfo": {
+          "path": "/resources/assets/js/components/layout/app-footer/FooterPlaybackControls.vue",
+          "property": {
+            "dataLastModified": "Sun Feb 04 2018",
+            "lastModified": "Sun Feb 04 2018",
+            "created": "2018-02-02T21:12:19.000Z",
+            "createdBy": "Phan An",
+            "updatedBy": "Phan An"
+          }
+        }
+      }
+    ],
+    "children": {
+      "total": 4,
+      "tags": [
+        "LikeButton",
+        "icon",
+        "PlayButton",
+        "RepeatModeSwitch"
+      ],
+      "source": "/resources/assets/js/components/layout/app-footer/FooterPlaybackControls.vue"
+    }
+  },
+  {
+    "name": "PlayButton",
+    "type": "internal",
+    "total": 1,
+    "source": {
+      "path": "/resources/assets/js/components/ui/FooterPlayButton.vue",
+      "property": {
+        "dataLastModified": "Sun Feb 04 2018",
+        "lastModified": "Sun Feb 04 2018",
+        "created": "2018-02-02T21:12:19.000Z",
+        "createdBy": "Phan An",
+        "updatedBy": "Phan An"
+      }
     },
-];
+    "usageLocations": [
+      {
+        "name": "PlayButton",
+        "source": "/resources/assets/js/components/ui/FooterPlayButton.vue",
+        "destination": "/resources/assets/js/components/layout/app-footer/FooterPlaybackControls.vue",
+        "rows": [
+          11
+        ],
+        "fileInfo": {
+          "path": "/resources/assets/js/components/ui/FooterPlayButton.vue",
+          "property": {
+            "dataLastModified": "Sun Feb 04 2018",
+            "lastModified": "Sun Feb 04 2018",
+            "created": "2018-02-02T21:12:19.000Z",
+            "createdBy": "Phan An",
+            "updatedBy": "Phan An"
+          }
+        }
+      }
+    ],
+    "children": {
+      "total": 1,
+      "tags": [
+        "icon"
+      ],
+      "source": "/resources/assets/js/components/ui/FooterPlayButton.vue"
+    }
+  },
+]
 ```
 
 </details>
-<br/>
 
-After the scan, an Analytic Dashboard is generated for transparency and insights. Here is a sample Dashboard:
+# :construction: Development
 
-![berryjam - dashboard](./assets/img/berryjam-dashboard.svg)
+The library uses `Nodejs`, `TypeScript` and `Jest` for development. Since this is a tool for detecting Vue components, you may find the rules on how Vue components in the [built-in-rules](/documentation/built-in-rules) folder.
 
-## :busts_in_silhouette: Community
+## How It Works
 
-- [Twitter][twitter]: Follow our official Twitter account
-- [Discord][discord]: A place where you can get support, feedback or just want to meet and hang out.
-- [GitHub](https://github.com/logicspark/berryjam): If you wish, you may want to request features here too.
-- For any other inquiries, you may reach out to us at connect@berryjam.dev.
+Berryjam contains 2 classes, namely:
 
-## :books: License
+1. `VueScanner` - Use to scan a project for component profiles. It will extract relevant relative values such as source, file path, component name from package.json files and their respective supported files to transform or normalize raw component data which will be mapped to each component profile.
 
-Berryjam code is licensed under the terms of the [Elastic License 2.0](LICENSE.md) (ELv2), which means you can use it freely inside your organization to protect your applications without any commercial requirements.
+2. `GitService` - If the project has .git folder, it will look for git related information such as author and datetime and map to each component profile.
 
-You are not allowed to provide Berryjam to third parties as a hosted or managed service without explicit approval.
+### VueScanner Overview
 
+Within the `VueScanner` class, you may call on `scan()` method to start scanning. The method encompasses 5 main steps. There are as follow:
+
+![Five main steps in VueScanner class](/assets/img/vuescanner-overview.png)
+
+| Step                                        | Description                                                                                                                                                                                                     |
+|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|1. `Group by Related Package.Json`           | Since there are multiple package.json files and supported files (`.vue`, `.js`, `.jsx`, `.ts`, `.tsx` and all files from the `.nuxt` folder (if any)), the system will group and determine the source of origin |
+|2.  `Select Analyzer Lib`                    | To choose the right library that matches the Vue version of your project                                                                                                                                        |
+|3.  `Prepare Alias Paths`                    | To gather all aliases from TS, JS and Vite config files to use for replacement in the 'import' statements                                                                                                       |
+|4.  `Analyze Component Files`                | For each file extension, the system will gather component info, including props                                                                                                                                 |
+|5. `Optimize Analyzed Results`               | Based on the component info, improvements are made by removing duplicates and formatting the component profile in a more structured way                                                                         |
+
+### GitService Overview
+
+Below are the main methods in the `GitService` class:
+
+| Method       | Description                                                                          |
+| ------------ | ----------------------------------------------------------------------------------   |
+| `gitScanner` | Initiate git log shell commands to scan which will be used by `gitMapping`.          |
+| `gitMapping` | Using the result from `gitScanner` to compare component name and git log filename. If both match, the git information will update into the respective component profile. |
+
+### Dependencies
+
+Third-Party plugins are loaded automatically from Berryjam’s package.json
+
+- Code Parsers
+  - [Babel](https://babeljs.io/)
+  - [Vue](https://www.npmjs.com/package/vue?activeTab=dependencies)
+- Node Modules
+  - path
+  -  fs
+- Others
+  - [glob](https://www.npmjs.com/package/glob)
+  - [lodash](https://www.npmjs.com/package/lodash)
+  - [tsconfig-paths](https://www.npmjs.com/package/tsconfig-paths)
+
+For more information, please refer to the [documentation](/documentation) folder.
+
+# :muscle: Contributing
+
+We are thankful and appreciative for all types of contributions. Whether you are helping us report or fix bugs, proposing new features, improving our documentation or spreading the word - we would love to have you as a part of the Berryjam community. Please refer to our [Contributing Guide](/CONTRIBUTING.md) and [Code of Conduct](/CODE_OF_CONDUCT.md).
+
+If you wish to start contributing right away, navigate to the GitHub [Issues](../../issues) tab and start looking through interesting issues. You may start off by working on issues labeled under `documentation` and `good first issue`.
+
+If you run into an error or an issue while using Berryjam, you have an idea on how to better Berryjam or perhaps you are looking through the documentation and thinking that it could be improved... please don’t hesitate to submit an issue :sunglasses:
+
+If you are a Vue.js developer who is not familiar with Node.js., you can submit an issue labeled `code example` on how you create Vue components. Check out our [built-in-rules](/documentation/built-in-rules) for more details.
+
+# :raising_hand: Need Help?
+
+We are more than happy to help you. If you have any questions, run into any errors or face any problems, please feel free to ask for help in [Berryjam Discord][discord]. Anything related to Berryjam is on the table!
+
+# :page_facing_up: License
+
+Berryjam is distributed under MIT License. Please refer to our [LICENSE.md](/LICENSE.md) file for more details.
+
+# Acknowledgement
+
+- [Babel](https://babeljs.io/)
+- [Glob](https://www.npmjs.com/package/glob)
+- [Img Shields](https://shields.io)
+- [lodash](https://github.com/lodash/lodash)
+- [Node.js](https://nodejs.org/en)
+- [Tsconfig-Paths](https://github.com/dividab/tsconfig-paths)
+- [Vue.js](https://vuejs.org/)
 
 [discord]: https://discord.gg/8SgTS4QdCd
 [twitter]: https://twitter.com/Berryjamdev
-[documentation]: https://docs.berryjam.dev
+[berryjam]: https://www.berryjam.dev

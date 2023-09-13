@@ -1,0 +1,79 @@
+name: "🐛 Bug Report"
+description: "Submit a bug report to help us improve"
+title: "🐛 "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If you encounter a bug when running the scanner, follow these steps to file a bug report: 
+        1. **Check if you are using the latest version**  
+        Check your version to make sure it is the latest as the bug may already be fixed in a later release. 
+
+        2. **Make sure the bug is not already reported** 
+        Perform a search in the issues tracker. If you found a similar bug that was reported, add any new information that you may have to aid the developers in fixing the bug. 
+         
+        3. **Collect information about the bug** 
+        To support us in identifying/reproducing and fixing the bug, collect as much of the following information as possible: 
+            * Any logs or console output  
+            * The platform that you are running on (Linux, macOS or Windows) 
+            * Your version of node 
+            * Step-by-step instructions to reproduce the bug 
+         
+        4. **File a bug report** 
+        Once you have all the information ready, file the bug report. By default, GitHub will drop you an email when a new comment has been made on your bug report. However, if you happen to have this feature off, make sure to check back occasionally so that you don’t miss any questions or responses.
+        
+  - type: textarea
+    id: description
+    validations:
+      required: true
+    attributes:
+      label: "Describe the bug"
+      description: "A clear and concise description of what the bug is."
+      placeholder: "I encountered a bug when..."
+  - type: textarea
+    id: to-reproduce
+    validations:
+      required: true
+    attributes:
+      label: "To Reproduce"
+      description: "Step-by-step instructions to reproduce the bug"
+      placeholder: "1. Go to '...'
+                    2. Click on '....'
+                    3. Scroll down to '....'
+                    4. See error"
+  - type: textarea
+    id: expected-behavior
+    validations:
+      required: true
+    attributes:
+      label: "Expected behavior"
+      description: "What should be the correct behaviour"
+      placeholder: "It should..."
+  - type: input
+    id: node-version
+    validations:
+      required: true
+    attributes:
+      label: "Node Version"
+      description: "What node version are you running on? "
+      placeholder: 16.0.0
+  - type: input
+    id: os
+    attributes:
+      label: "OS"
+      description: "What OS are you using? "
+      placeholder: "Windows/macOS/Linux"
+  - type: input
+    id: web-browser
+    attributes:
+      label: Browser
+      description: What web browser are you using?
+      placeholder: Chrome/Edge/Safari/Firefox
+  - type: textarea
+    id: additional-context
+    validations:
+      required: false
+    attributes:
+      label: "Additional Context"
+      description: "Any other additional information that will aid us?"

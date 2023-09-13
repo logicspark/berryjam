@@ -1,0 +1,4 @@
+.vscode/
+Jenkinsfile
+sonar-project.properties
+*.log

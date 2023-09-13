@@ -1,0 +1,7 @@
+{
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"prettier.configPath": ".prettierrc",
+	"prettier.requireConfig": true,
+	"editor.formatOnSave": true,
+	"prettier.htmlWhitespaceSensitivity": "strict"
+}
