@@ -1,4 +1,4 @@
-import { transformSync } from "@babel/core";
+import { transformSync, createConfigItem } from "@babel/core";
 import BabelParser, { parse as babelParse } from "@babel/parser";
 import { parse as domParse, NodeTypes } from "@vue/compiler-dom";
 import CompilerSFC, { compileScript, SFCDescriptor } from "@vue/compiler-sfc";
@@ -240,11 +240,15 @@ export function parseTypescript(
 				componentTags = result.componentTags;
 			}
 		} catch (err) {
+			console.group("parseTsx");
 			console.error(err, `[Func parseTypescript] ${filePath}`);
+			console.groupEnd();
 		}
 		properties = getTsxProps(fileContent, filePath);
 	} catch (error) {
+		console.group("traverseImports");
 		console.error(error, filePath);
+		console.groupEnd();
 	}
 
 	return { componentTags, importStatements, properties };
@@ -739,8 +743,8 @@ function transformTraversedTags(
 function parseTsx(fileContent: string, filePath: string) {
 	const jsxContent = transformSync(fileContent, {
 		filename: filePath,
-		presets: ["@babel/preset-typescript"],
-		plugins: ["@vue/babel-plugin-jsx"],
+		presets: [createConfigItem(require(`@babel/preset-typescript`))],
+		plugins: [createConfigItem(require("@vue/babel-plugin-jsx"))],
 		comments: false,
 	});
 	const componentTags: TraversedTag[] = [];
@@ -823,7 +827,7 @@ function categorizeTag(
 function getTsxProps(fileContent: string, filePath: string) {
 	const jsx = transformSync(fileContent, {
 		filename: filePath,
-		presets: ["@babel/preset-typescript"],
+		presets: [createConfigItem(require(`@babel/preset-typescript`))],
 		comments: false,
 	});
 
