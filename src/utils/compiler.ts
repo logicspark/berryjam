@@ -2,12 +2,11 @@ import { transformSync, createConfigItem } from "@babel/core";
 import BabelParser, { parse as babelParse } from "@babel/parser";
 import { parse as domParse, NodeTypes } from "@vue/compiler-dom";
 import CompilerSFC, { compileScript, SFCDescriptor } from "@vue/compiler-sfc";
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import * as ts from "typescript";
 
-import { readFileSync } from "fs";
 import { dirname, join, resolve } from "path";
-import { BAN_TAGS } from "./constants";
+import { BAN_TAGS, SUPPORT_EXT } from "./constants";
 import { checkFileTypeExists, getFileInfo } from "./file.utils";
 import { HTML_TAGS } from "./html-tags";
 import { VueASTNode } from "../types";
@@ -40,8 +39,7 @@ import {
 	VariableDeclaration,
 	VariableDeclarator,
 } from "@babel/types";
-import { SUPPORT_EXT } from "./constants";
-// import logger, { logErrorMessage } from "./logger";
+
 import {
 	prepareMappedImportDeclaration,
 	traverseImports,
