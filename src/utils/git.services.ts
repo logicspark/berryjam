@@ -1,255 +1,252 @@
-import shell from "shelljs";
-import { createReadStream, unlinkSync } from "fs";
-import { createInterface } from "readline";
-import { join } from "path";
-import { createHomeDirIfNotExist } from "./file.utils";
-import { ComponentProfile, FileProperty } from "../types";
+import { ExecException, execSync } from "child_process";
+import { ParsedGitDiff } from "../interfaces/git.services.interfaces";
+import _ from "lodash";
+import { writeGlobJson } from "./file.utils";
 
 export class GitService {
-	createFileForModifiedGitType: Promise<boolean> = Promise.resolve(false);
-	createFileForAllGitTypesExceptModified: Promise<boolean> =
-		Promise.resolve(false);
-	appDirectoryPath: string;
-	filenameForModifiedGitType: string;
-	filenameForAllGitTypesExceptModified: string;
-	/**
-	 * Create an instance of GitService.
-	 *
-	 * @param path - The path to the directory to scan for Git information.
-	 * @param appPath - The path to the directory to store git information.
-	 * @throws Throw an error if the git status does not equal to 0.
-	 *
-	 * Remark: For more detailed on how git log is filtered, please check --diff-filter section at https://git-scm.com/docs/git-log.
-	 */
-	constructor(path: string, appPath: string) {
-		this.appDirectoryPath = createHomeDirIfNotExist(appPath);
-		this.filenameForAllGitTypesExceptModified = join(
-			this.appDirectoryPath,
-			"git-log-for-all-except-modified.log"
-		);
-		this.filenameForModifiedGitType = join(
-			this.appDirectoryPath,
-			"git-log-for-modified.log"
-		);
-		this.gitScanner(path);
+	resolvePath: string = ".";
+	appDir: string = "";
+	jsonfile: string = "git-parsed-diff.json";
+
+	constructor(appDir: string, resolvePath: string) {
+		this.resolvePath = resolvePath;
+		this.appDir = appDir;
 	}
 
-	/**
-	 * Initiate git log shell commands to scan which will be used by gitMapping.
-	 *
-	 */
-	gitScanner(dir: string) {
-		this.createFileForModifiedGitType = new Promise<boolean>((resolve) => {
-			// Format to display datetime and author name
-			shell.exec(
-				`cd ${dir} && git log --name-only --diff-filter=M --pretty="format:DATETIME=%ai AUTHOR_NAME=%an" > ${this.filenameForModifiedGitType}`,
-				{ silent: true, async: true },
-				(code: number, stdout: string, stderr: string) => {
-					if (code !== 0) {
-						console.error(`Error executing command: ${stderr}`);
-					}
-					resolve(true);
-				}
-			);
-		});
+	scan = () => {
+		const currentCommitHash = this.executeCommand(
+			`cd ${this.resolvePath} && git rev-parse HEAD`
+		);
+		if (currentCommitHash) {
+			const currentDate = new Date();
+			const endDate = new Date();
+			endDate.setMonth(currentDate.getMonth() - 12 * 10);
 
-		this.createFileForAllGitTypesExceptModified = new Promise<boolean>(
-			(resolve) => {
-				// Format to display datetime and author name
-				shell.exec(
-					`cd ${dir} && git log --name-only --diff-filter=ACDRTUXB --pretty="format:DATETIME=%ai AUTHOR_NAME=%an" > ${this.filenameForAllGitTypesExceptModified}`,
-					{ silent: true, async: true },
-					(code: number, stdout: string, stderr: string) => {
-						if (code !== 0) {
-							console.error(`Error executing command: ${stderr}`);
-						}
-						resolve(true);
-					}
-				);
+			const parsedGit: ParsedGitDiff[] = [];
+			this.fetchCommits(parsedGit, currentCommitHash as string, endDate);
+			for (const commit of parsedGit) {
+				const parsedFiles = this.parseGitDiff(commit.diff);
+				commit.files = parsedFiles;
+				delete commit.diff;
 			}
-		);
-	}
-	/**
-	 * Asynchronously uses the result from reading of git log to map into each component profile.
-	 * This function compares component name and git log filename. If both match, the git information will update into 
-	 * the respective component profile.
-	 *
-	 * @returns A Promise that resolves an array of `Component Profile` objects, each representing a group
-	 *          of git information with respective to each component profile.
-	 */
-	async gitMapping(tags: ComponentProfile[]): Promise<ComponentProfile[]> {
-		try {
-			await Promise.all([
-				this.createFileForAllGitTypesExceptModified,
-				this.createFileForModifiedGitType,
-			]);
-		} catch (error) {
-			console.log(error, "[Func] gitMapping");
-			return Promise.resolve([]);
+			writeGlobJson(
+				this.appDir,
+				JSON.stringify(parsedGit, null, 2),
+				this.jsonfile
+			);
 		}
+	};
 
-		for (let indexTag = 0; indexTag <= tags.length - 1; indexTag++) {
-			const tag = tags[indexTag];
-			if (!tag.source.property) {
-				tag.source.property = {
-					dataLastModified: "",
-					lastModified: "",
-					created: "",
-					updatedBy: "",
-					createdBy: "",
-				};
-			}
-			if (tag.type == "internal") {
-				try {
-					const tagCreated: FileProperty = await this.createdFindBySource(
-						tag.source.path
-					);
-					const tagUpdated: FileProperty = await this.updatedFindBySource(
-						tag.source.path
-					);
+	private executeCommand = (command: string): string | null => {
+		const exec = `cd ${this.resolvePath} && ${command}`;
+		try {
+			return execSync(exec, {
+				maxBuffer: 1024 ** 6,
+			})
+				.toString("utf8")
+				.trim();
+		} catch (e) {
+			console.error(`Error executing command: ${exec}`);
+			console.error((e as ExecException).message);
+			return null;
+		}
+	};
 
-					tag.source.property.created =
-						tagCreated.created ?? tagUpdated.lastModified;
-					tag.source.property.createdBy =
-						tagCreated.createdBy ?? tagUpdated.updatedBy;
-					tag.source.property.lastModified =
-						tagUpdated.lastModified ?? tagCreated.created;
-					tag.source.property.dataLastModified =
-						tagUpdated.dataLastModified ?? tagCreated.created;
-					tag.source.property.updatedBy =
-						tagUpdated.updatedBy ?? tagCreated.createdBy;
-				} catch (error) {
-					console.log(error, "[Func] gitMapping in the loop");
-				}
-			}
-			tags[indexTag] = tag;
-		} // End loop of updating tags
-		return tags;
-	}
+	private getRepositoryName = (): string | null => {
+		return this.executeCommand(`git rev-parse --show-toplevel`);
+	};
 
-	/**
-	 * Check if this line is set with datetime and author name.
-	 *
-	 * @returns A boolean value indicates whether both `datetime` and `author name` exists or not.
-	 */
-	private isDateAndAuthorExisted(line: string) {
-		return line.includes("DATETIME=") && line.includes("AUTHOR_NAME=");
-	}
-
-	/**
-	 * Split textline to separate `datetime` and `author name` to create an object of git information for each component.
-	 *
-	 * @returns An object containing `datetime` and `author name`.
-	 */
-	private splitAndGetGitLog(line: string) {
-		const splitedLine = line.replace("DATETIME=", "").split(" AUTHOR_NAME=");
-		const datetime = new Date(splitedLine[0]);
-		const authorName = splitedLine[1];
-		return { datetime, authorName };
-	}
-
-	/**
-	 * Find component source path to compare with git log filename for all types, excluding modified type,
-	 * to collect git information for each component profile.
-	 *
-	 * @returns An object containing git information for each component profile.
-	 */
-	createdFindBySource(tagFilePath: string): Promise<FileProperty> {
-		const result: FileProperty = {
-			created: "",
-			createdBy: "",
-			dataLastModified: "",
-			lastModified: "",
-			updatedBy: "",
+	private getCommitDetails = (commitHash: string) => {
+		const details = this.executeCommand(`git show --quiet ${commitHash}`);
+		if (!details) return null;
+		const authorMatch = details.match(/Author:\s+(.*)\s+</);
+		const authorName = authorMatch ? authorMatch[1] : "Unknown";
+		const dateMatch = details.match(/Date:\s+(.*)/);
+		const [hash, , authorEmail, date, ...message] = details.split("\n");
+		return {
+			authorName,
+			authorEmail: "",
+			commitDate: dateMatch ? new Date(dateMatch[1].trim()) : new Date(),
+			commitHash: hash.split(" ")[1],
+			commitMessage: message.join("\n").trim(),
 		};
-		return new Promise((resolve) => {
-			const readStream = createReadStream(
-				this.filenameForAllGitTypesExceptModified,
-				"utf-8"
-			);
-			const rl = createInterface({ input: readStream });
-			let datetime = "";
-			let authorName = "";
-			rl.on("line", (line: string) => {
-				if (line.length > 0) {
-					if (this.isDateAndAuthorExisted(line)) {
-						const log = this.splitAndGetGitLog(line);
-						datetime = log.datetime.toDateString();
-						authorName = log.authorName;
+	};
+
+	private getDiffDetails(commitHash: string) {
+		return this.executeCommand(`git diff ${commitHash}~ ${commitHash}`);
+	}
+
+	private getPreviousCommitHash = (currentHash: string): string | null => {
+		return (
+			this.executeCommand(`git rev-list --parents -n 1 ${currentHash}`)?.split(
+				" "
+			)[1] || null
+		);
+	};
+
+	private fetchCommits = (rows: any[], currentHash: string, endDate: Date) => {
+		const details = this.getCommitDetails(currentHash);
+		if (!details) return;
+		// console.log('details', details)
+		const diff = this.getDiffDetails(currentHash);
+
+		if (details.commitDate.getTime() < endDate.getTime()) {
+			return;
+		}
+		// console.log('details.commitDate.getTime()', details.commitDate.getTime())
+		const previousHash = this.getPreviousCommitHash(currentHash);
+		// console.log('previousHash', previousHash)
+		rows.push({ ...details, diff, previousHash });
+		if (previousHash) {
+			this.fetchCommits(rows, previousHash, endDate);
+		}
+	};
+
+	private parseGitDiff = (diff?: string) => {
+		try {
+			if (!diff) return [];
+			const lines = diff.split("\n");
+			const files: any[] = [];
+			let currentFile: any = null;
+			let currentHunk: any = null;
+			let hunkLineCounter = 0;
+
+			for (let i = 0; i < lines.length; i++) {
+				const line = lines[i];
+
+				if (line.startsWith("diff")) {
+					if (currentFile) {
+						files.push(currentFile);
+						currentFile = null;
+					}
+					continue;
+				}
+
+				if (line.startsWith("Binary files")) {
+					if (currentFile) {
+						currentFile.binaryChange = true;
+					}
+					continue;
+				}
+
+				if (line.startsWith("rename from")) {
+					if (!currentFile) {
+						currentFile = {};
+					}
+					currentFile.renamedFile = {
+						from: line.replace("rename from ", ""),
+						to: lines[++i].replace("rename to ", ""),
+					};
+					continue;
+				}
+
+				if (line.startsWith("copy from")) {
+					if (!currentFile) {
+						currentFile = {};
+					}
+					currentFile.copiedFile = {
+						from: line.replace("copy from ", ""),
+						to: lines[++i].replace("copy to ", ""),
+					};
+					continue;
+				}
+
+				if (line.startsWith("old mode")) {
+					if (!currentFile) {
+						currentFile = {};
+					}
+					currentFile.fileModeChange = {
+						oldMode: line.replace("old mode ", ""),
+						newMode: lines[++i].replace("new mode ", ""),
+					};
+					continue;
+				}
+
+				if (line.startsWith("---")) {
+					currentFile = {
+						filePath: lines[i + 1].substring(4),
+						changes: [],
+						binaryChange: false,
+						fileModeChange: null,
+						renamedFile: null,
+						copiedFile: null,
+					};
+					const parts = currentFile.filePath.split("/");
+					currentFile.fileName = parts.pop()!;
+					currentFile.directory = parts.join("/") + "/";
+					currentFile.fileExtension = currentFile.fileName.split(".").pop()!;
+					i++;
+					continue;
+				}
+
+				if (line.startsWith("diff")) {
+					if (currentFile) {
+						files.push(currentFile);
+						currentFile = null;
+					}
+					continue;
+				}
+
+				if (line.startsWith("---")) {
+					currentFile = {
+						filePath: lines[i + 1].substring(4), // Get the path after '+++ b/'
+						changes: [],
+					};
+					const parts = currentFile.filePath.split("/");
+					currentFile.fileName = parts.pop()!;
+					currentFile.directory = parts.join("/") + "/";
+					currentFile.fileExtension = currentFile.fileName.split(".").pop()!;
+					i++; // Skip the next line (+++ b/file)
+					continue;
+				}
+
+				if (line.startsWith("@@")) {
+					if (currentHunk) {
+						currentFile?.changes.push(currentHunk);
+					}
+					const hunkMatch = line.match(/@@ -(\d+),?(\d*) \+(\d+),?(\d*) @@/);
+					if (hunkMatch) {
+						currentHunk = {
+							hunkStart: parseInt(hunkMatch[1]),
+							hunkLength: parseInt(hunkMatch[2]),
+							hunkNewStart: parseInt(hunkMatch[3]),
+							hunkNewLength: parseInt(hunkMatch[4]),
+							lines: [],
+						};
+						hunkLineCounter = currentHunk.hunkNewStart;
+					}
+					continue;
+				}
+
+				if (currentHunk) {
+					if (line.startsWith("+")) {
+						currentHunk.lines.push({
+							lineNumber: hunkLineCounter,
+							action: "ADD",
+						});
+						hunkLineCounter++;
+					} else if (line.startsWith("-")) {
+						currentHunk.lines.push({
+							lineNumber: hunkLineCounter,
+							action: "REMOVE",
+						});
 					} else {
-						if (tagFilePath.includes(line)) {
-							result.created = datetime;
-							result.createdBy = authorName;
-						}
+						hunkLineCounter++; // Non-added/removed lines increment the counter
 					}
 				}
-			});
-			rl.on("close", (_close: any) => {
-				resolve(result);
-			});
-		});
-	}
-	
-	/**
-	 * Find component source path to compare with git log filename of modified type
-	 * to collect git information for each component profile.
-	 *
-	 * @returns An object containing git information for each component profile.
-	 */
-	updatedFindBySource(tagFilePath: string): Promise<FileProperty> {
-		const result: FileProperty = {
-			created: "",
-			createdBy: "",
-			dataLastModified: "",
-			lastModified: "",
-			updatedBy: "",
-		};
-		return new Promise((resolve) => {
-			const readStream = createReadStream(
-				this.filenameForModifiedGitType,
-				"utf-8"
-			);
-			const rl = createInterface({ input: readStream });
-			let datetime = "";
-			let authorName = "";
-			rl.on("line", (line: string) => {
-				if (line.length > 0) {
-					if (this.isDateAndAuthorExisted(line)) {
-						const log = this.splitAndGetGitLog(line);
-						datetime = log.datetime.toDateString();
-						authorName = log.authorName;
-					} else {
-						if (tagFilePath.includes(line)) {
-							result.dataLastModified = datetime;
-							result.lastModified = datetime;
-							result.updatedBy = authorName;
-						}
-					}
-				}
-			});
-			rl.on("close", (_close: any) => {
-				resolve(result);
-			});
-		});
-	}
+			}
 
-	/**
-	 * Remove a file containing git information if no longer needded (Not in use at the moment).
-	 */
-	unlinkGitLogFile() {
-		unlinkSync(this.filenameForAllGitTypesExceptModified);
-		unlinkSync(this.filenameForModifiedGitType);
-	}
+			if (currentHunk) {
+				currentFile?.changes?.push(currentHunk);
+			}
+			if (currentFile) {
+				files.push(currentFile);
+			}
 
-	/**
-	 * Get Respository URL using a git command (Not in use at the moment).
-	 *
-	 * @returns A string or an empty value.
-	 */
-	getRepoUrl() {
-		const { stdout, code } = shell.exec("git config --get remote.origin.url", {
-			silent: true,
-		});
-		return code === 0 ? stdout.trim() : "";
-	}
+			return files;
+		} catch (error) {
+			console.error("Error while parsing the git diff:", error);
+			return [];
+		}
+	};
 }

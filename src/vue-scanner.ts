@@ -734,21 +734,6 @@ export class VueScanner implements Scanner {
 	}
 
 	/**
-	 * Map component profiles with Git-related information.
-	 *
-	 * @param componentProfiles - An array of component profiles to map with Git information.
-	 * @returns A promise that resolves an array of component profiles with Git information.
-	 */
-	async mapComponentProfileGit(
-		componentProfiles: ComponentProfile[]
-	): Promise<ComponentProfile[]> {
-		const gitService = new GitService(this.scanPath, this.option.appDir);
-		// Call the gitMapping method of the GitService to map Git-related information to component profiles
-		const result = await gitService.gitMapping(componentProfiles);
-		return result;
-	}
-
-	/**
 	 * Removes the app directory and its contents, including subdirectories and files.
 	 * This operation is performed forcefully and recursively.
 	 *
@@ -925,10 +910,10 @@ export class VueScanner implements Scanner {
 		);
 		this.mapComponentProfileProps(filePathToProperties);
 		if (existsSync(join(this.scanPath, ".git"))) {
-			this.componentProfiles = await this.mapComponentProfileGit(
-				this.componentProfiles
-			);
+			// Use Git Scan
+			new GitService(this.option.appDir, this.scanPath).scan();
 		}
+
 		return this.componentProfiles;
 	}
 }
