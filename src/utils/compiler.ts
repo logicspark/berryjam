@@ -44,6 +44,7 @@ import {
 	prepareMappedImportDeclaration,
 	traverseImports,
 } from "./module.utils";
+import logger from "./logger";
 
 const generate = require("@babel/generator").default;
 const traverse = require("@babel/traverse").default;
@@ -91,7 +92,7 @@ export function parseVue(
 			result?.customTags && componentTags.push(...result.customTags);
 		}
 	} catch (error) {
-		console.error(error, `[Func] parseVue ${filePath}`);
+		logger.log(error, `[Func] parseVue ${filePath}`);
 	}
 	return {
 		componentTags,
@@ -156,7 +157,7 @@ export function parseJs(
 			},
 		});
 	} catch (error) {
-		console.error(error, `[Func] parseJs => ${filePath}`);
+		logger.log(error, `[Func] parseJs => ${filePath}`);
 	}
 	return {
 		componentTags: customTags,
@@ -204,7 +205,7 @@ export function parseJsx(
 			},
 		});
 	} catch (error) {
-		console.error(error, "[Func] parseJsx");
+		logger.log(error, "[Func] parseJsx");
 	}
 	return {
 		componentTags: customTags,
@@ -238,15 +239,11 @@ export function parseTypescript(
 				componentTags = result.componentTags;
 			}
 		} catch (err) {
-			console.group("parseTsx");
-			console.error(err, `[Func parseTypescript] ${filePath}`);
-			console.groupEnd();
+			logger.log(err, `[Func parseTypescript] ${filePath}`);
 		}
 		properties = getTsxProps(fileContent, filePath);
 	} catch (error) {
-		console.group("traverseImports");
-		console.error(error, filePath);
-		console.groupEnd();
+		logger.log(error, filePath);
 	}
 
 	return { componentTags, importStatements, properties };
@@ -325,7 +322,7 @@ export function parseComponentsDeclaration(
 		});
 		// logger.debug({ componentDeclarations: componentDeclarations.length });
 	} catch (error) {
-		console.error(error, "[Func] parseComponentsDeclaration");
+		logger.log(error, "[Func] parseComponentsDeclaration");
 	}
 
 	return componentDeclarations.length ? componentDeclarations : null;
@@ -356,11 +353,11 @@ export function parseNuxtGlobalTypes(filePath: string) {
 				return ele;
 			});
 		} catch (error) {
-			console.error(error, "[Func] parseNuxtGlobalTypes");
+			logger.log(error, "[Func] parseNuxtGlobalTypes");
 			return null;
 		}
 	} else {
-		console.error(
+		logger.log(
 			{ error: "Failed to read file", filePath },
 			"[Func] parseNuxtGlobalTypes"
 		);
@@ -425,8 +422,8 @@ function handleNode(node: ts.Node): ImportStatement[] {
 								const importType = member.type
 									? member.type.getText()
 									: undefined;
-								console.log("Component:", componentName);
-								console.log("Import type:", importType);
+								logger.log("Component:", componentName);
+								logger.log("Import type:", importType);
 							}
 						}
 					}
@@ -457,7 +454,7 @@ function handleNode(node: ts.Node): ImportStatement[] {
 	} else if (ts.isClassDeclaration(node)) {
 		// Handle class declarations
 		const className = node.name?.getText();
-		console.log("Class name:", className);
+		logger.log("Class name:", className);
 	}
 	// Add more conditions for different types of nodes you want to handle
 	return componentDeclarations;

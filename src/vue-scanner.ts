@@ -36,6 +36,7 @@ import {
 } from "./utils/compiler";
 import { kebabCaseToPascalCase } from "./utils/text.utils";
 import { GitService } from "./utils/git.services";
+import logger from "./utils/logger";
 
 type CompilerSFC = typeof import("@vue/compiler-sfc");
 type BabelParser = typeof import("@babel/parser");
@@ -81,6 +82,8 @@ export class VueScanner implements Scanner {
 		if (!existsSync(appDir)) {
 			mkdirSync(appDir, { recursive: true });
 		}
+
+		logger.setVerboseMode(this.option.verbose ?? false);
 	}
 
 	/**
