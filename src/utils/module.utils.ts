@@ -5,6 +5,7 @@ import { loadConfig } from "tsconfig-paths";
 import { glob } from "glob";
 import { getFileInfo } from "./file.utils";
 import type { ImportStatement } from "../types";
+import logger from "./logger";
 const traverse = require("@babel/traverse").default;
 
 export const traverseImports = (
@@ -67,7 +68,7 @@ export const traverseImports = (
 										)
 								);
 								if (!componentName) {
-									console.debug({ component }, "Null ExportDefaultDeclaration");
+									logger.log({ component }, "Null ExportDefaultDeclaration");
 								}
 								if (importDeclaration) {
 									const source = importDeclaration.source.value;
