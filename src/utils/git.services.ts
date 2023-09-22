@@ -4,6 +4,7 @@ import { createInterface } from "readline";
 import { join } from "path";
 import { createHomeDirIfNotExist } from "./file.utils";
 import { ComponentProfile, FileProperty } from "../types";
+import logger from "./logger";
 
 export class GitService {
 	createFileForModifiedGitType: Promise<boolean> = Promise.resolve(false);
@@ -46,7 +47,7 @@ export class GitService {
 				{ silent: true, async: true },
 				(code: number, stdout: string, stderr: string) => {
 					if (code !== 0) {
-						console.error(`Error executing command: ${stderr}`);
+						logger.log(`Error executing command: ${stderr}`);
 					}
 					resolve(true);
 				}
@@ -61,7 +62,7 @@ export class GitService {
 					{ silent: true, async: true },
 					(code: number, stdout: string, stderr: string) => {
 						if (code !== 0) {
-							console.error(`Error executing command: ${stderr}`);
+							logger.log(`Error executing command: ${stderr}`);
 						}
 						resolve(true);
 					}
@@ -71,7 +72,7 @@ export class GitService {
 	}
 	/**
 	 * Asynchronously uses the result from reading of git log to map into each component profile.
-	 * This function compares component name and git log filename. If both match, the git information will update into 
+	 * This function compares component name and git log filename. If both match, the git information will update into
 	 * the respective component profile.
 	 *
 	 * @returns A Promise that resolves an array of `Component Profile` objects, each representing a group
@@ -84,7 +85,7 @@ export class GitService {
 				this.createFileForModifiedGitType,
 			]);
 		} catch (error) {
-			console.log(error, "[Func] gitMapping");
+			logger.log(error, "[Func] gitMapping");
 			return Promise.resolve([]);
 		}
 
@@ -119,7 +120,7 @@ export class GitService {
 					tag.source.property.updatedBy =
 						tagUpdated.updatedBy ?? tagCreated.createdBy;
 				} catch (error) {
-					console.log(error, "[Func] gitMapping in the loop");
+					logger.log(error, "[Func] gitMapping in the loop");
 				}
 			}
 			tags[indexTag] = tag;
@@ -189,7 +190,7 @@ export class GitService {
 			});
 		});
 	}
-	
+
 	/**
 	 * Find component source path to compare with git log filename of modified type
 	 * to collect git information for each component profile.
