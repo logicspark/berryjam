@@ -6,7 +6,11 @@ import groupBy from "lodash/groupBy";
 import map from "lodash/map";
 import mapValues from "lodash/mapValues";
 import omit from "lodash/omit";
-import { checkFileTypeExists, getSupportedFiles } from "./utils/file.utils";
+import {
+	checkFileTypeExists,
+	getSupportedFiles,
+	transformStringToRegex,
+} from "./utils/file.utils";
 import { DEF_IGNORE_FILES, SUPPORT_EXT } from "./utils/constants";
 import type {
 	VueScannerOption,
@@ -64,7 +68,9 @@ export class VueScanner implements Scanner {
 	constructor(path: string, option: VueScannerOption) {
 		this.scanPath = resolve(path);
 		this.option = option;
-		// Create a set of ignored paths by combining default ignored files with custom ignored files from options
+		// Create a set of ignored paths by
+		// combining default ignored files with custom ignored files
+		// from the options
 		this.ignorePathSet = [
 			...new Set([...DEF_IGNORE_FILES, ...(option.ignore ?? [])]),
 		];
@@ -464,6 +470,7 @@ export class VueScanner implements Scanner {
 		importStatements: ImportStatement[] | null,
 		filePath: string
 	) {
+		const ignorePatterns = this.ignorePathSet.map(transformStringToRegex);
 		allTraversedTags.forEach((ele) => {
 			const { tag, row } = ele;
 			const transformedTag = kebabCaseToPascalCase(tag).toLowerCase();
@@ -483,6 +490,10 @@ export class VueScanner implements Scanner {
 			if (foundSourceElem) {
 				foundSourceElem.rows.push(row);
 			} else {
+				// Check if the file path matchs in the `ignorePatterns` array.
+				if (ignorePatterns.some((pattern) => source.match(pattern))) {
+					return;
+				}
 				this.vueComponents.push({
 					name: tag,
 					source,
