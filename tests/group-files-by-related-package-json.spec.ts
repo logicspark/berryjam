@@ -31,6 +31,35 @@ describe("Get supported files", () => {
 		getSupportedFilesOutput = received;
 		expect(received).not.toHaveLength(expected);
 	});
+
+	it("All .js file should not be scaned", async () => {
+		const vueScanner = new VueScanner(directory, {
+			appDir: directory,
+			ignore: [".js"],
+		});
+		const packageGroups = await vueScanner.groupFilesByRelatedPackageJson();
+		const jsFiles = packageGroups.reduce((acc, packageGroup) => {
+			const { files } = packageGroup;
+			return [...acc, ...(files?.filter((f) => f.includes(".js")) ?? [])];
+		}, [] as string[]);
+		expect(jsFiles).toHaveLength(0);
+	});
+
+	it("All file in `example-jsx` folder should not be scaned", async () => {
+		const vueScanner = new VueScanner(directory, {
+			appDir: directory,
+			ignore: ["/example-jsx/"],
+		});
+		const packageGroups = await vueScanner.groupFilesByRelatedPackageJson();
+		const scanFiles = packageGroups.reduce((acc, packageGroup) => {
+			const { files } = packageGroup;
+			return [
+				...acc,
+				...(files?.filter((f) => f.includes("/example-jsx/")) ?? []),
+			];
+		}, [] as string[]);
+		expect(scanFiles).toHaveLength(0);
+	});
 });
 
 /**
