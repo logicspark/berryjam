@@ -107,7 +107,6 @@ export const writeGlobJson = (
 	data: string,
 	filename = "data.json"
 ) => {
-	appHomeDirectory = `${appHomeDirectory}/dataset`;
 	const appDirectoryPath = createHomeDirIfNotExist(appHomeDirectory);
 	const filePath = join(appDirectoryPath, filename);
 	return new Promise<string>((resolve, reject) => {

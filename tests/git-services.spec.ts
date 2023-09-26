@@ -13,8 +13,7 @@ beforeEach(() => {
 });
 
 /**
- * Git recursively method
- * search git commit all
+ * To recursively to search for all git commits.
  */
 describe("Git recursively method", () => {
 	it("should be a string", async () => {
@@ -74,8 +73,7 @@ describe("Git recursively method", () => {
 });
 
 /**
- * Git parsed diff method
- * format diff a string to an object
+ * To transform a string to an object by processing git parsed diff details.
  */
 describe("Git parsed diff method", () => {
 	it("should be an object", async () => {

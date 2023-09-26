@@ -14,8 +14,8 @@ export class GitService {
 	}
 
 	/**
-	 * Scan method
-	 * เป็น function หลักในการ scan git log
+	 * Scan git log of the project to retrieve relevant git history such as.
+	 * author, datetime and file changes to output as a JSON file.
 	 */
 	scan = () => {
 		const currentCommitHash = this.executeCommand(
@@ -24,8 +24,7 @@ export class GitService {
 		if (currentCommitHash) {
 			const currentDate = new Date();
 			const endDate = new Date();
-			endDate.setMonth(currentDate.getMonth() - 12 * 10);
-
+			endDate.setMonth(currentDate.getMonth() - 12 * 5);
 			const rows: ParsedGitDiff[] = [];
 			this.fetchCommits(rows, currentCommitHash as string, endDate);
 			for (const commit of rows) {
@@ -38,10 +37,10 @@ export class GitService {
 	};
 
 	/**
-	 * Execute Command เป็น function ในการเรียกใช้ command script
+	 * This function sends a string as a command to run in Shell.
 	 *
 	 * @param command - A string of command line.
-	 * @returns A string or null
+	 * @returns A string or null.
 	 */
 	executeCommand = (command: string): string | null => {
 		const exec = `cd ${this.resolvePath} && ${command}`;
@@ -59,17 +58,10 @@ export class GitService {
 	};
 
 	/**
-	 * Not use
-	 */
-	private getRepositoryName = (): string | null => {
-		return this.executeCommand(`git rev-parse --show-toplevel`);
-	};
-
-	/**
-	 * Get commit details เพื่อดู author and date
+	 * Get commit details for author name and datetime.
 	 *
-	 * @param commitHash - A string git commit hash
-	 * @returns An object from details split
+	 * @param commitHash - A string of git commit hash.
+	 * @returns An object of author name and datetime that are split from commit details.
 	 */
 	getCommitDetails = (commitHash: string) => {
 		const details = this.executeCommand(`git show --quiet ${commitHash}`);
@@ -88,20 +80,20 @@ export class GitService {
 	};
 
 	/**
-	 * Get git diff details
+	 * Get git diff details such as filename change, line location and file path.
 	 *
-	 * @param commitHash -  A string git commit hash
-	 * @returns A string git diff
+	 * @param commitHash -  A string of git commit hash.
+	 * @returns A string of information taken from git diff details.
 	 */
 	getDiffDetails(commitHash: string) {
 		return this.executeCommand(`git diff ${commitHash}~ ${commitHash}`);
 	}
 
 	/**
-	 * Get previous commit hash จะเป็นการค้นหา commit ถัดจากปัจจุบัน
+	 * Get the previous commit hash from the current commit hash.
 	 *
-	 * @param currentHash - A string current git commit hash
-	 * @returns A string or null
+	 * @param currentHash - A string of git commit hash (current).
+	 * @returns A string or null.
 	 */
 	getPreviousCommitHash = (currentHash: string): string | null => {
 		return (
@@ -112,12 +104,12 @@ export class GitService {
 	};
 
 	/**
-	 * Fetch commits เพื่อค้นหา current git commit
+	 * Fetch commits by looping each current git commit to get the previous git commit within a certain period.
 	 *
 	 * @param rows - An array.
-	 * @param currentHash - A string current git commit hash
-	 * @param endDate - A end datetime for filter commit datetime
-	 * @Callback A rows
+	 * @param currentHash - A string of current git commit hash.
+	 * @param endDate - An end datetime to filter commits from the end datetime to the current date.
+	 * @callback rows
 	 */
 	fetchCommits = (rows: any[], currentHash: string, endDate: Date) => {
 		const details = this.getCommitDetails(currentHash);
@@ -138,10 +130,10 @@ export class GitService {
 	};
 
 	/**
-	 * Parse git diff
+	 * Parse git diff details to transform into an object for readability.
 	 *
-	 * @param diff - A string git diff
-	 * @returns An array an object
+	 * @param diff - A string of git diff details.
+	 * @returns An array of object.
 	 */
 	parseGitDiff = (diff?: string) => {
 		try {
