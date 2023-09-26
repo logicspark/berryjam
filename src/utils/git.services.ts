@@ -13,6 +13,10 @@ export class GitService {
 		this.appDir = appDir;
 	}
 
+	/**
+	 * Scan method
+	 * เป็น function หลักในการ scan git log
+	 */
 	scan = () => {
 		const currentCommitHash = this.executeCommand(
 			`cd ${this.resolvePath} && git rev-parse HEAD`
@@ -22,22 +26,24 @@ export class GitService {
 			const endDate = new Date();
 			endDate.setMonth(currentDate.getMonth() - 12 * 10);
 
-			const parsedGit: ParsedGitDiff[] = [];
-			this.fetchCommits(parsedGit, currentCommitHash as string, endDate);
-			for (const commit of parsedGit) {
+			const rows: ParsedGitDiff[] = [];
+			this.fetchCommits(rows, currentCommitHash as string, endDate);
+			for (const commit of rows) {
 				const parsedFiles = this.parseGitDiff(commit.diff);
 				commit.files = parsedFiles;
 				delete commit.diff;
 			}
-			writeGlobJson(
-				this.appDir,
-				JSON.stringify(parsedGit, null, 2),
-				this.jsonfile
-			);
+			writeGlobJson(this.appDir, JSON.stringify(rows, null, 2), this.jsonfile);
 		}
 	};
 
-	private executeCommand = (command: string): string | null => {
+	/**
+	 * Execute Command เป็น function ในการเรียกใช้ command script
+	 *
+	 * @param command - A string of command line.
+	 * @returns A string or null
+	 */
+	executeCommand = (command: string): string | null => {
 		const exec = `cd ${this.resolvePath} && ${command}`;
 		try {
 			return execSync(exec, {
@@ -52,11 +58,20 @@ export class GitService {
 		}
 	};
 
+	/**
+	 * Not use
+	 */
 	private getRepositoryName = (): string | null => {
 		return this.executeCommand(`git rev-parse --show-toplevel`);
 	};
 
-	private getCommitDetails = (commitHash: string) => {
+	/**
+	 * Get commit details เพื่อดู author and date
+	 *
+	 * @param commitHash - A string git commit hash
+	 * @returns An object from details split
+	 */
+	getCommitDetails = (commitHash: string) => {
 		const details = this.executeCommand(`git show --quiet ${commitHash}`);
 		if (!details) return null;
 		const authorMatch = details.match(/Author:\s+(.*)\s+</);
@@ -72,11 +87,23 @@ export class GitService {
 		};
 	};
 
-	private getDiffDetails(commitHash: string) {
+	/**
+	 * Get git diff details
+	 *
+	 * @param commitHash -  A string git commit hash
+	 * @returns A string git diff
+	 */
+	getDiffDetails(commitHash: string) {
 		return this.executeCommand(`git diff ${commitHash}~ ${commitHash}`);
 	}
 
-	private getPreviousCommitHash = (currentHash: string): string | null => {
+	/**
+	 * Get previous commit hash จะเป็นการค้นหา commit ถัดจากปัจจุบัน
+	 *
+	 * @param currentHash - A string current git commit hash
+	 * @returns A string or null
+	 */
+	getPreviousCommitHash = (currentHash: string): string | null => {
 		return (
 			this.executeCommand(`git rev-list --parents -n 1 ${currentHash}`)?.split(
 				" "
@@ -84,7 +111,15 @@ export class GitService {
 		);
 	};
 
-	private fetchCommits = (rows: any[], currentHash: string, endDate: Date) => {
+	/**
+	 * Fetch commits เพื่อค้นหา current git commit
+	 *
+	 * @param rows - An array.
+	 * @param currentHash - A string current git commit hash
+	 * @param endDate - A end datetime for filter commit datetime
+	 * @Callback A rows
+	 */
+	fetchCommits = (rows: any[], currentHash: string, endDate: Date) => {
 		const details = this.getCommitDetails(currentHash);
 		if (!details) return;
 		// console.log('details', details)
@@ -102,7 +137,13 @@ export class GitService {
 		}
 	};
 
-	private parseGitDiff = (diff?: string) => {
+	/**
+	 * Parse git diff
+	 *
+	 * @param diff - A string git diff
+	 * @returns An array an object
+	 */
+	parseGitDiff = (diff?: string) => {
 		try {
 			if (!diff) return [];
 			const lines = diff.split("\n");
