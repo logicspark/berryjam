@@ -69,11 +69,11 @@ export async function getSupportedFiles(
 
 export const writeResultToFile = (
 	relativeFilePath: string,
-	data: any
+	data: string
 ): Promise<string> => {
 	const filePath = resolve(relativeFilePath);
 	return new Promise<string>((resolve, reject) => {
-		writeFile(filePath, JSON.stringify(data), (err) => {
+		writeFile(filePath, data, (err) => {
 			if (err) {
 				logger.log("Error saving file:", err);
 				reject(err);
