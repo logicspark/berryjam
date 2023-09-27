@@ -10,6 +10,7 @@ import {
 	checkFileTypeExists,
 	getSupportedFiles,
 	transformStringToRegex,
+	writeResultToFile,
 } from "./utils/file.utils";
 import { DEF_IGNORE_FILES, SUPPORT_EXT } from "./utils/constants";
 import type {
@@ -23,6 +24,7 @@ import type {
 	ParsedCodeResult,
 	VueProperty,
 	VueComponent,
+	OutputFormat,
 } from "./types";
 import { spawnSync } from "node:child_process";
 import {
@@ -45,6 +47,7 @@ import logger from "./utils/logger";
 type CompilerSFC = typeof import("@vue/compiler-sfc");
 type BabelParser = typeof import("@babel/parser");
 
+const defaultOutput: OutputFormat = "json";
 abstract class Scanner {
 	scanPath!: string;
 	option!: VueScannerOption;
@@ -67,7 +70,7 @@ export class VueScanner implements Scanner {
 	 */
 	constructor(path: string, option: VueScannerOption) {
 		this.scanPath = resolve(path);
-		this.option = option;
+		this.option = { output: defaultOutput, ...option };
 		// Create a set of ignored paths by
 		// combining default ignored files with custom ignored files
 		// from the options
@@ -774,6 +777,24 @@ export class VueScanner implements Scanner {
 	}
 
 	/**
+ 	* Writes an array of component profiles to a JSON file within the specified app directory.
+
+ 	* @param componentProfiles An array of component profiles to be written to the file.
+ 	* @returns The path of the file where the component profiles were written.
+ 	*/
+	async writeComponentProfilesToJson(
+		componentProfiles: ComponentProfile[]
+	): Promise<string> {
+		// Construct the path to the output file
+		const outputPath = `${this.option.appDir}/component-profiles.json`;
+		// Convert the component profiles to a formatted JSON string and write to the file
+		return await writeResultToFile(
+			outputPath,
+			JSON.stringify(componentProfiles, null, 2)
+		);
+	}
+
+	/**
 	 * Scan the project directory for Vue components, analyzes their structure, and collects information.
 	 *
 	 * @returns A promise that resolves an array of component profiles.
@@ -942,6 +963,9 @@ export class VueScanner implements Scanner {
 			this.componentProfiles = await this.mapComponentProfileGit(
 				this.componentProfiles
 			);
+		}
+		if (this.option?.output === "json") {
+			await this.writeComponentProfilesToJson(this.componentProfiles);
 		}
 		return this.componentProfiles;
 	}
