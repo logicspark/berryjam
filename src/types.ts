@@ -1,13 +1,10 @@
+export type OutputFormat = "json" | "stdout";
 export interface VueScannerOption {
 	appDir: string;
+	output?: OutputFormat;
 	ignore?: string[];
 	verbose?: boolean;
 	debug?: boolean;
-	url?: string;
-	output?: string;
-	local?: number;
-	workspace?: string;
-	token?: string;
 }
 
 export interface PackageGroup {
