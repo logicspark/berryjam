@@ -1,11 +1,22 @@
-const removeDashesAndConvertToUpperCase = (text: string) => {
-	return text.replace(/-/, "").toUpperCase();
-};
+/**
+ * Converts a kebab-case string to camelCase.
+ * For example, "my-example-string" becomes "myExampleString".
+ * @param input The kebab-case string to convert.
+ * @returns The converted CamelCase string.
+ */
+export function kebabCaseToCamelCase(input: string) {
+	const converted = input.replace(/-([a-z])/g, function (match, letter) {
+		return letter.toUpperCase();
+	});
+	return converted.charAt(0).toUpperCase() + converted.slice(1);
+}
 
-export const kebabCaseToCamelCase = (text: string) => {
-	return text.replace(/-\w/g, removeDashesAndConvertToUpperCase);
-};
-
-export const kebabCaseToPascalCase = (text: string) => {
-	return text.replace(/(^\w|-\w)/g, removeDashesAndConvertToUpperCase);
-};
+/**
+ * Converts a kebab-case string to camelCase.
+ * For example, "my-example-string" becomes "myExampleString".
+ * @param input The kebab-case string to convert.
+ * @returns The converted camelCase string.
+ */
+export function camelCaseToKebabCase(input: string) {
+	return input.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+}
