@@ -964,8 +964,17 @@ export class VueScanner implements Scanner {
 				this.componentProfiles
 			);
 		}
-		if (this.option?.output === "json") {
-			await this.writeComponentProfilesToJson(this.componentProfiles);
+		if (this.option?.output) {
+			switch (this.option.output) {
+				case "json":
+					await this.writeComponentProfilesToJson(this.componentProfiles);
+					break;
+				case "stdout":
+					console.log(this.componentProfiles);
+					break;
+				default:
+					break;
+			}
 		}
 		return this.componentProfiles;
 	}
