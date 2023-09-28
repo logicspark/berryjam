@@ -5,10 +5,6 @@ export interface VueScannerOption {
 	ignore?: string[];
 	verbose?: boolean;
 	debug?: boolean;
-	url?: string;
-	local?: number;
-	workspace?: string;
-	token?: string;
 }
 
 export interface PackageGroup {
