@@ -12,11 +12,11 @@ export function kebabCaseToPascalCase(input: string) {
 }
 
 /**
- * Converts a kebab-case string to camelCase.
+ * Converts a kebab-case string to pascalCase.
  * For example, "my-example-string" becomes "myExampleString".
  * @param input The kebab-case string to convert.
- * @returns The converted camelCase string.
+ * @returns The converted pascalCase string.
  */
-export function camelCaseToKebabCase(input: string) {
+export function pascalCaseToKebabCase(input: string) {
 	return input.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
