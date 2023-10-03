@@ -1,4 +1,4 @@
-import { resolve, join, dirname, extname, basename } from "path";
+import { resolve, join, dirname, extname, basename, parse } from "path";
 import { existsSync, readFileSync, mkdirSync, writeFileSync, rmSync } from "fs";
 import { homedir } from "os";
 import countBy from "lodash/countBy";
@@ -40,7 +40,10 @@ import {
 	parseComponentsDeclaration,
 	parseTypescript,
 } from "./utils/compiler";
-import { kebabCaseToPascalCase } from "./utils/text.utils";
+import {
+	kebabCaseToPascalCase,
+	pascalCaseToKebabCase,
+} from "./utils/text.utils";
 import { GitService } from "./utils/git.services";
 import logger from "./utils/logger";
 
@@ -497,10 +500,11 @@ export class VueScanner implements Scanner {
 				if (ignorePatterns.some((pattern) => source.match(pattern))) {
 					return;
 				}
-				this.vueComponents.push({
+				// row equals 0, means file component
+				const vueComponent = {
 					name: tag,
-					source,
-					destination: filePath,
+					source: row === 0 ? filePath : source,
+					destination: row === 0 ? "" : filePath,
 					rows: [row],
 					fileInfo: {
 						path: "",
@@ -512,7 +516,8 @@ export class VueScanner implements Scanner {
 							updatedBy: "",
 						},
 					},
-				});
+				};
+				this.vueComponents.push(vueComponent);
 			}
 		});
 	}
@@ -551,11 +556,21 @@ export class VueScanner implements Scanner {
 			importStatements,
 			"sourcePath"
 		);
+		this.option.debug &&
+			writeFileSync(
+				`${this.option.appDir}/importStatementsGroupedBySourcePath.json`,
+				JSON.stringify(importStatementsGroupedBySourcePath, null, 2)
+			);
 		const revisedImportStatement: ImportStatement[] = [];
 		Object.entries(importStatementsGroupedBySourcePath).forEach((ele) => {
 			const source = ele[0],
 				importedList = ele[1];
 			const firstSourcePath = importedList.at(0)?.source ?? "";
+			const foundImportWithDestination = importedList.find(
+				(ele) => ele.destination
+			);
+			const destinationFile = foundImportWithDestination?.destination;
+			const dynamic = foundImportWithDestination?.dynamic;
 			const { exists, filePath } = checkFileTypeExists(source, SUPPORT_EXT);
 			revisedImportStatement.push({
 				importedNames: importedList.reduce((arr, i) => {
@@ -565,6 +580,8 @@ export class VueScanner implements Scanner {
 				source: firstSourcePath,
 				sourcePath: filePath,
 				importSourceType: exists ? "internal" : "external",
+				...(dynamic && { dynamic }),
+				...(destinationFile && { destination: destinationFile }),
 			});
 		});
 		return revisedImportStatement;
@@ -628,6 +645,7 @@ export class VueScanner implements Scanner {
 			if (!foundImportedTags?.length) {
 				return;
 			}
+
 			const foundImportedTagSameSource = foundImportedTags.find((i) =>
 				[i.sourcePath, i.source].includes(componentSource.path)
 			);
@@ -641,7 +659,8 @@ export class VueScanner implements Scanner {
 					{},
 					foundImportedTagSameSource ?? foundImportedTag
 				);
-				const { importSourceType, source, sourcePath } = foundMapped;
+				const { importSourceType, source, sourcePath, dynamic, destination } =
+					foundMapped;
 				const existedSource = sourcePath?.length ? sourcePath : source;
 				ele.type = importSourceType;
 				ele.source.path = existedSource.replace(/\\/g, "/");
@@ -659,6 +678,27 @@ export class VueScanner implements Scanner {
 							ele.children = child;
 						}
 					});
+					if (dynamic) {
+						if (!ele.usageLocations) {
+							ele.usageLocations = [];
+						}
+						ele.usageLocations.push({
+							name: "",
+							source: "",
+							destination: destination!,
+							rows: [],
+							fileInfo: {
+								path: destination!,
+								property: {
+									created: "",
+									createdBy: "",
+									updatedBy: "",
+									lastModified: "",
+									dataLastModified: "",
+								},
+							},
+						});
+					}
 				} else {
 					const packageLib = this.getDependencyByName(
 						currentPackage.dependencies,
@@ -683,15 +723,18 @@ export class VueScanner implements Scanner {
 	removeDuplicateComponents(componentProfiles: ComponentProfile[]) {
 		const deletedIdxList: number[] = [];
 		componentProfiles.forEach((ele, idx, arr) => {
-			const tagName = ele.name,
-				source = ele.source.path,
-				mainUsageLocations = ele.usageLocations ?? [];
 			if (deletedIdxList.includes(idx)) {
 				return;
 			}
+			const tagName = ele.name,
+				source = ele.source.path,
+				mainUsageLocations = ele.usageLocations ?? [];
+			const pascalCase = kebabCaseToPascalCase(tagName);
+			const kebabCase = pascalCaseToKebabCase(tagName);
 			const duplicatedTagWithIndices = arr.reduce(
 				(acc, curr, index) => {
-					const isTagExisted = curr.name === tagName;
+					// const isTagExisted = curr.name === tagName;
+					const isTagExisted = [pascalCase, kebabCase].includes(curr.name);
 					const deleteIdxExisted = deletedIdxList.includes(index);
 					const isSourceExisted =
 						(!curr.source.path && !curr.source.package) ||
@@ -880,6 +923,10 @@ export class VueScanner implements Scanner {
 						babelModule: babelParserMod as BabelParser,
 					}
 				);
+				if ([".vue", ".jsx", ".tsx"].includes(extname(filePath))) {
+					// assume it is an unused components
+					componentTags.push({ tag: parse(filePath).name, row: 0 });
+				}
 				// Store all import statements into `allImportStatements`
 				if (importStatements?.length) {
 					allImportStatements = this.updateImportStatementsWithTransformedPaths(
@@ -924,8 +971,36 @@ export class VueScanner implements Scanner {
 				`${this.option.appDir}/groupedComponentSources.json`,
 				JSON.stringify(groupedComponentSources, null, 2)
 			));
+
+		// Revises a grouped object of component sources by merging entries with similar keys.
+		const revisedGroupedComponentSources = Object.entries(
+			groupedComponentSources
+		).reduce(
+			(acc, [key, value]) => {
+				// Split the key into tagName and sourcePath
+				const [tagName, sourcePath] = key.split("__");
+				// Convert tagName to kebab-case and camelCase
+				const kebabCase = pascalCaseToKebabCase(tagName);
+				const pascalCase = kebabCaseToPascalCase(tagName);
+				// Find an existing key that matches either kebab-case or pascalCase
+				const foundKey = Object.keys(acc).find((k) =>
+					[
+						`${kebabCase}__${sourcePath}`,
+						`${pascalCase}__${sourcePath}`,
+					].includes(k)
+				);
+				// If a matching key is found, merge the values; otherwise, create a new entry
+				if (foundKey) {
+					acc[foundKey] = acc[foundKey].concat(value);
+				} else {
+					acc[key] = value;
+				}
+				return acc;
+			},
+			{} as Record<string, VueComponent[]>
+		);
 		// Create component profiles from grouped sources.
-		this.componentProfiles = Object.entries(groupedComponentSources).map(
+		this.componentProfiles = Object.entries(revisedGroupedComponentSources).map(
 			(ele) => {
 				const vueComponents = ele[1];
 				const { name, fileInfo, source } = vueComponents.at(0)!;
@@ -936,7 +1011,7 @@ export class VueScanner implements Scanner {
 				}, 0);
 				return {
 					name,
-					type: null,
+					type: existsSync(source) ? "internal" : null,
 					total,
 					source: fileInfo,
 				} as ComponentProfile;
@@ -947,7 +1022,7 @@ export class VueScanner implements Scanner {
 			const tagName = ele.name,
 				source = ele.source.path;
 			const key = source ? `${tagName}__${source}` : tagName;
-			const foundUsageLocations = groupedComponentSources[key];
+			const foundUsageLocations = revisedGroupedComponentSources[key];
 			arr[idx].usageLocations = foundUsageLocations;
 		});
 

@@ -35,7 +35,9 @@ export interface ImportStatement {
 	importedNames: string[];
 	source: string;
 	importSourceType: ComponentSourceType;
+	destination?: string;
 	sourcePath?: string;
+	dynamic?: boolean;
 }
 
 export interface VueProperty {
