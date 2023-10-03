@@ -121,9 +121,9 @@ async function whatEverFunction() {
 
 The `VueScanner` function takes two parameters as follow: 
 - The first parameter is the path of the project to be scanned.
-- The second is an options object that utilizes the `VueScannerOption` interface.
+- The second is an option object that utilizes the `VueScannerOption` interface.
 
-Here is a detailed description of each available option within the `VueScannerOption` interface:
+Here is the detailed description of each available option within the `VueScannerOption` interface:
 
 ### VueScannerOption Interface
 
