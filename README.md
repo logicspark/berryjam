@@ -150,7 +150,7 @@ For more details on `VueScanner` class, please check out [below](#VueScanner-Ove
 
 ### Output
 
-By calling `scan` method, it will scan for Vue components and return `ComponentProfile[]`. If you `console.log` the output, here is an example of how it may look. For demonstration purposes, we have scanned an open-source project called [Koel](https://github.com/koel/koel).
+By calling the `scan` method, it will scan for Vue components and return `ComponentProfile[]`. Here is an example of how it may look. For demonstration purposes, we have scanned an open-source project called [Koel](https://github.com/koel/koel).
 
 <details open>
   <summary>Sample Result</summary>
