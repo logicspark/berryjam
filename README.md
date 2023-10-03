@@ -118,6 +118,34 @@ async function whatEverFunction() {
 
 
 ```
+
+The `VueScanner` function takes two parameters as follow: 
+- The first parameter is the path of the project to be scanned.
+- The second is an options object that utilizes the `VueScannerOption` interface.
+
+Here is a detailed description of each available option within the `VueScannerOption` interface:
+
+### VueScannerOption Interface
+
+| Property   | Type                     | Description                                                         |
+|------------|--------------------------|---------------------------------------------------------------------|
+| `appDir`   | `string`                 | The path of the project directory to be scanned.                    |
+| `output`   | `OutputFormat` (optional)| The desired output format of the scanned result. (JSON by default)  |
+| `ignore`   | `string[]` (optional)    | An array of file names or directory names to exclude from scanning. |
+| `verbose`  | `boolean` (optional)     | Enable verbose mode for more detailed scanning information.         |
+| `debug`    | `boolean` (optional)     | Operate the scanner in debug mode, providing debugging information. |
+
+### OutputFormat Type
+
+The `OutputFormat` type represents available output formats.
+
+| Type       | Description                                                                                         |
+|------------|-----------------------------------------------------------------------------------------------------|
+| `"json"`   | Output the scanned result in JSON format and saved as 'component-profiles.json' within the 'appDir'.|
+| `"stdout"` | Display the scanned result directly in the console (stdout).                                        |
+
+These options and types offer flexibility and customization when using the `VueScanner` function to analyze Vue.js projects.
+
 For more details on `VueScanner` class, please check out [below](#VueScanner-Overview).
 
 ### Output
