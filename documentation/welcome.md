@@ -15,7 +15,11 @@ Berryjam contains 2 classes:
 
 ### VueScanner Class
 
-After importing the class, the `scan(path, option)` constructor may be called to instantiate the class
+After importing the class, you can instantiate it using the class constructor which requires two parameters: 
+- The first parameter is the path of the project to be scanned, and
+- The second is an option object that utilizes the `VueScannerOption` interface.
+
+After instantiation, you can use the `scan` method to start scanning your project.
 
 ```js
 const vueScanner = new VueScanner(path, option);
@@ -27,6 +31,29 @@ The constructor will perform the following:
 - Validate if the provided path exists
 - Validate if the package.json exists at the root of the provided path
 - Create a root directory with options to install Vue Compiler and Babel libraries
+
+For clearer understanding of each available option within the `VueScannerOption` interface, here is the detailed description:
+
+### VueScannerOption Interface
+
+| Property   | Type                     | Description                                                         |
+|------------|--------------------------|---------------------------------------------------------------------|
+| `appDir`   | `string`                 | The path of the project directory to be scanned.                    |
+| `output`   | `OutputFormat` (optional)| The desired output format of the scanned result. (JSON by default)  |
+| `ignore`   | `string[]` (optional)    | An array of file names or directory names to exclude from scanning. |
+| `verbose`  | `boolean` (optional)     | Enable verbose mode for more detailed scanning information.         |
+| `debug`    | `boolean` (optional)     | Operate the scanner in debug mode, providing debugging information. |
+
+### OutputFormat Type
+
+The `OutputFormat` type represents available output formats.
+
+| Type       | Description                                                                                         |
+|------------|-----------------------------------------------------------------------------------------------------|
+| `"json"`   | Output the scanned result in JSON format and saved as 'component-profiles.json' within the 'appDir'.|
+| `"stdout"` | Display the scanned result directly in the console (stdout).                                        |
+
+These options and types offer flexibility and customization when using the `VueScanner` function to analyze Vue.js projects.
 
 There are 5 steps to scan Vue components with `VueScanner`. These steps are as follow:
 
