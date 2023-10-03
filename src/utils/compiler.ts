@@ -80,7 +80,7 @@ export function parseVue(
 
 		const scriptContent = `${script?.content || scriptSetup?.content || ""}`;
 		importStatements = traverseImports(
-			currentDir,
+			filePath,
 			scriptContent,
 			babelParse,
 			script?.lang || scriptSetup?.lang
@@ -223,12 +223,12 @@ export function parseTypescript(
 	) => BabelParser.ParseResult<any>
 ): ParsedCodeResult {
 	let componentTags: TraversedTag[] = [];
-	const { fileContent, currentDir } = getFileInfo(filePath);
+	const { fileContent } = getFileInfo(filePath);
 	let importStatements: ImportStatement[] | null = null;
 	let properties: VueProperty[] = [];
 	try {
 		importStatements = traverseImports(
-			currentDir,
+			filePath,
 			fileContent,
 			babelParse,
 			extension
