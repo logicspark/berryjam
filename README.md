@@ -116,8 +116,10 @@ async function whatEverFunction() {
   const result = await vueScanner.scan();
 }
 
-
 ```
+_Note: For **Nuxt** projects, please ensure that you have a `.Nuxt` folder before scanning._
+
+<br/>
 
 The `VueScanner` function takes two parameters as follow: 
 - The first parameter is the path of the project to be scanned.
