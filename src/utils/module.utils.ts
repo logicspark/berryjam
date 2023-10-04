@@ -244,7 +244,6 @@ export async function getViteAliasPaths(
 ) {
 	const currentDir = resolve(dirname(packageJsonPath)).replace(/\\/g, "/");
 	const foundConfigFiles = await glob(`${currentDir}/vite.config.{js,ts}`);
-	console.debug({ currentDir, foundConfigFiles });
 	if (!foundConfigFiles?.length) {
 		return null;
 	}
