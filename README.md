@@ -117,7 +117,7 @@ async function whatEverFunction() {
 }
 
 ```
-_Note: For a **Nuxt** project, please ensure that you have a `.Nuxt` folder before scanning._
+_Note: For a **Nuxt** project, please ensure that you have a `.nuxt` folder before scanning._
 
 <br/>
 
