@@ -7,7 +7,7 @@
   </a>
 </div>
 
-<h1 align="center">UI Components Anaylzer for Vue 3 & Nuxt</h1>
+<h1 align="center">UI Components Analyzer for Vue 3 & Nuxt</h1>
 
 <div align="center">
   Scan your Vue.js codebase for component visibility and actionable insights.
