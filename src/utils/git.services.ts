@@ -2,6 +2,7 @@ import { ExecException, execSync } from "child_process";
 import { ParsedGitDiff } from "../interfaces/git.services.interfaces";
 import _ from "lodash";
 import { writeGlobJson } from "./file.utils";
+import { GitParser } from "./git.parser";
 
 export class GitService {
 	resolvePath: string = ".";
@@ -25,14 +26,35 @@ export class GitService {
 			const currentDate = new Date();
 			const endDate = new Date();
 			endDate.setMonth(currentDate.getMonth() - 12 * 5);
+
 			const rows: ParsedGitDiff[] = [];
 			this.fetchCommits(rows, currentCommitHash as string, endDate);
+
+			writeGlobJson(
+				this.appDir,
+				JSON.stringify(rows, null, 2),
+				"git-diff.json"
+			);
+
+			// Better viewing of linenumbers
+			let results: ParsedGitDiff[] = [];
 			for (const commit of rows) {
-				const parsedFiles = this.parseGitDiff(commit.diff);
-				commit.files = parsedFiles;
+				if (commit.diff != null) {
+					const diff = new GitParser(commit.diff);
+					commit.files = diff.result;
+				}
 				delete commit.diff;
+				if (commit.files) {
+					if (commit.files.detailed) {
+						results.push(commit);
+					}
+				}
 			}
-			writeGlobJson(this.appDir, JSON.stringify(rows, null, 2), this.jsonfile);
+			writeGlobJson(
+				this.appDir,
+				JSON.stringify(results, null, 2),
+				this.jsonfile
+			);
 		}
 	};
 
@@ -146,6 +168,8 @@ export class GitService {
 
 			for (let i = 0; i < lines.length; i++) {
 				const line = lines[i];
+
+				console.log("line===>", line);
 
 				if (line.startsWith("diff")) {
 					if (currentFile) {

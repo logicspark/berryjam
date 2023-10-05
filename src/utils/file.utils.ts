@@ -120,3 +120,7 @@ export const writeGlobJson = (
 		});
 	});
 };
+
+export const supportFileType = (): string[] => {
+	return ["vue", "js", "json", "ts", "tsx", "jsx"];
+};
