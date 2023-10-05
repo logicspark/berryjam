@@ -9,7 +9,7 @@ export class GitParser {
 	lines: string[];
 	result: GitDiffResult = { detailed: false, commits: [] };
 	line: number = 0;
-	currentCommit;
+	currentCommit: any;
 
 	constructor(gitDiff: string) {
 		this.lines = gitDiff.split("\n");
