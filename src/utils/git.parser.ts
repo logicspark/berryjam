@@ -72,7 +72,7 @@ export class GitParser {
 		const noeol = "\\ No newline at end of file";
 
 		while (this.line < this.lines.length) {
-			var matches;
+			let matches: any;
 			const line = this.lines[this.line];
 
 			if (
