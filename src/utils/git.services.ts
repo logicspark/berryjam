@@ -30,12 +30,6 @@ export class GitService {
 			const rows: ParsedGitDiff[] = [];
 			this.fetchCommits(rows, currentCommitHash as string, endDate);
 
-			writeGlobJson(
-				this.appDir,
-				JSON.stringify(rows, null, 2),
-				"git-diff.json"
-			);
-
 			// Better viewing of linenumbers
 			let results: ParsedGitDiff[] = [];
 			for (const commit of rows) {
