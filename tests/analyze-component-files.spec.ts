@@ -224,6 +224,7 @@ describe("Remove duplicate components", () => {
 			children: { total: 1, tags: ["Button"], source: "" },
 		},
 			// Push 2nd object
+
 			{
 				name: "Button",
 				type: "internal",
