@@ -1,9 +1,9 @@
 import { resolve, join, dirname, extname, basename } from "path";
 import { existsSync, readFileSync, mkdirSync, writeFileSync, rmSync } from "fs";
 import { homedir } from "os";
-import countBy from "lodash/countBy";
+
 import groupBy from "lodash/groupBy";
-import map from "lodash/map";
+
 import mapValues from "lodash/mapValues";
 import omit from "lodash/omit";
 import {
@@ -777,11 +777,11 @@ export class VueScanner implements Scanner {
 	}
 
 	/**
- 	* Write an array of component profiles to a JSON file within the specified app directory.
+	* Write an array of component profiles to a JSON file within the specified app directory.
 
- 	* @param componentProfiles An array of component profiles to be written to the file.
- 	* @returns The path of the file where the component profiles were written.
- 	*/
+	* @param componentProfiles An array of component profiles to be written to the file.
+	* @returns The path of the file where the component profiles were written.
+	*/
 	async writeComponentProfilesToJson(
 		componentProfiles: ComponentProfile[]
 	): Promise<string> {
