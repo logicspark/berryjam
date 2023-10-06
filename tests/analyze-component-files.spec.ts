@@ -222,27 +222,27 @@ describe("Remove duplicate components", () => {
 			usageLocations: [],
 			groups: [],
 			children: { total: 1, tags: ["Button"], source: "" },
-		});
-		// Push 2nd object
-		componentProfiles.push({
-			name: "Button",
-			type: "internal",
-			total: 0,
-			source: {
-				path: "C:/projects/berryjam-cli/public/Components/Header.js",
-				property: {
-					dataLastModified: "Fri Apr 28 2023",
-					lastModified: "Fri Apr 28 2023",
-					created: "2023-04-17T04:04:04.000Z",
-					createdBy: "system",
-					updatedBy: "system",
+		},
+			// Push 2nd object
+			{
+				name: "Button",
+				type: "internal",
+				total: 0,
+				source: {
+					path: "C:/projects/berryjam-cli/public/Components/Header.js",
+					property: {
+						dataLastModified: "Fri Apr 28 2023",
+						lastModified: "Fri Apr 28 2023",
+						created: "2023-04-17T04:04:04.000Z",
+						createdBy: "system",
+						updatedBy: "system",
+					},
 				},
-			},
-			properties: [],
-			usageLocations: [],
-			groups: [],
-			children: { total: 1, tags: ["Button"], source: "" },
-		});
+				properties: [],
+				usageLocations: [],
+				groups: [],
+				children: { total: 1, tags: ["Button"], source: "" },
+			});
 
 		const received = vueScanner.removeDuplicateComponents(componentProfiles);
 		expect(received).toHaveLength(1);
