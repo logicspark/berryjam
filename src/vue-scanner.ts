@@ -777,7 +777,7 @@ export class VueScanner implements Scanner {
 	}
 
 	/**
-		* Write an array of component profiles to a JSON file within the specified app directory.
+	* Write an array of component profiles to a JSON file within the specified app directory.
 
 		* @param componentProfiles An array of component profiles to be written to the file.
 		* @returns The path of the file where the component profiles were written.
