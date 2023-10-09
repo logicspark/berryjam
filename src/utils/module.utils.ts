@@ -4,7 +4,7 @@ import { existsSync } from "fs";
 import { loadConfig } from "tsconfig-paths";
 import { glob } from "glob";
 import { getFileInfo } from "./file.utils";
-import type { ImportStatement } from "../types";
+import type { ImportStatement, ImportStatementUsage } from "../types";
 import logger from "./logger";
 const traverse = require("@babel/traverse").default;
 
@@ -28,7 +28,7 @@ export const traverseImports = (
 			plugins,
 		});
 		let mappedImportList: ImportStatement[] = [];
-		const dynamicImports: any[] = [];
+		const importStatementUsages: ImportStatementUsage[] = [];
 		const { currentDir } = getFileInfo(filePath);
 		traverse(ast, {
 			ImportDeclaration(astPath: any) {
@@ -98,43 +98,58 @@ export const traverseImports = (
 						path.node.value.body.type === "CallExpression" &&
 						path.node.value.body.callee.type === "Import"
 					) {
-						const importPath = path.node.value.body.arguments[0].value;
-						dynamicImports.push(importPath);
+						const nodeValue = path.node.value.body.arguments[0];
+						const importPath = String(nodeValue.value);
+						const line = Number(nodeValue.loc.start.line);
+						importStatementUsages.push({
+							lines: { [filePath]: [line] },
+							dynamic: true,
+							importPath,
+						} as ImportStatementUsage);
 					} else {
 						//mean using the import statement
-						if (filePath?.includes("router.ts")) {
-							const { name } = path.node.value;
-							const found = mappedImportList.find((ele) =>
-								ele.importedNames.includes(name)
-							);
-							if (found) {
-								found.dynamic = true;
-							}
-							found && console.log("found", found, path.node.value);
+						//if (filePath?.includes("router.ts")) {
+						const { name } = path.node.value;
+						const found = mappedImportList.find((ele) =>
+							ele.importedNames.includes(name)
+						);
+						if (found) {
+							found.usage = {
+								lines: {
+									[filePath]: [Number(path.node.value.loc.start.line ?? 0)],
+								},
+								dynamic: false,
+								importPath: found.source,
+							};
 						}
+						// }
 					}
 				}
 			},
 		});
-		if (dynamicImports.length) {
+		if (importStatementUsages.length) {
 			// process dynamic import
-			const dynamicMappedImports = dynamicImports.reduce((acc, importPath) => {
-				const normalizedName = basename(importPath).replace(
-					extname(importPath),
-					""
-				);
-				const importedNames = [normalizedName];
-				const isRelative = /^\./.test(importPath);
-				const currentImportLine = {
-					importedNames,
-					source: isRelative ? resolve(currentDir, importPath) : importPath,
-					importSourceType: isRelative ? "internal" : "external",
-					destination: filePath,
-					dynamic: true,
-				} as ImportStatement;
-				acc.push(currentImportLine);
-				return acc;
-			}, [] as ImportStatement[]);
+			const dynamicMappedImports = importStatementUsages.reduce(
+				(acc, usage) => {
+					const { importPath } = usage;
+					const normalizedName = basename(importPath).replace(
+						extname(importPath),
+						""
+					);
+					const importedNames = [normalizedName];
+					const isRelative = /^\./.test(importPath);
+					const currentImportLine: ImportStatement = {
+						importedNames,
+						source: isRelative ? resolve(currentDir, importPath) : importPath,
+						importSourceType: isRelative ? "internal" : "external",
+						destination: filePath,
+						usage,
+					};
+					acc.push(currentImportLine);
+					return acc;
+				},
+				[] as ImportStatement[]
+			);
 
 			mappedImportList.push(...dynamicMappedImports);
 		}
@@ -300,7 +315,6 @@ export async function getViteAliasPaths(
 ) {
 	const currentDir = resolve(dirname(packageJsonPath)).replace(/\\/g, "/");
 	const foundConfigFiles = await glob(`${currentDir}/vite.config.{js,ts}`);
-	console.debug({ currentDir, foundConfigFiles });
 	if (!foundConfigFiles?.length) {
 		return null;
 	}

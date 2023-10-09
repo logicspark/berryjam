@@ -296,6 +296,7 @@ export function parseComponentsDeclaration(
 											? resolve(currentDir, importFrom)
 											: importFrom,
 										importSourceType: isRelative ? "internal" : "external",
+										destination: filePath,
 									} as ImportStatement;
 									componentDeclarations.push(currentImportLine);
 								}
