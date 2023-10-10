@@ -524,7 +524,7 @@ export class VueScanner implements Scanner {
 	 * @param componentTags - An array of component tags to normalize.
 	 * @returns The normalized child component object.
 	 */
-	nomalizeComponentChildTag(filePath: string, componentTags?: TraversedTag[]) {
+	normalizeComponentChildTag(filePath: string, componentTags?: TraversedTag[]) {
 		const child: ChildComponentTag = {
 			total: 0,
 			tags: [],
@@ -777,11 +777,11 @@ export class VueScanner implements Scanner {
 	}
 
 	/**
-	* Write an array of component profiles to a JSON file within the specified app directory.
-
-	* @param componentProfiles An array of component profiles to be written to the file.
-	* @returns The path of the file where the component profiles were written.
-	*/
+	 * Write an array of component profiles to a JSON file within the specified app directory.
+	 * @param componentProfiles An array of component profiles to be written to the file.
+	 * @returns The path of the file where the component profiles were written.
+	 *
+	 */
 	async writeComponentProfilesToJson(
 		componentProfiles: ComponentProfile[]
 	): Promise<string> {
@@ -901,7 +901,7 @@ export class VueScanner implements Scanner {
 						filePath
 					);
 				}
-				const child = this.nomalizeComponentChildTag(filePath, componentTags);
+				const child = this.normalizeComponentChildTag(filePath, componentTags);
 				children.push(child);
 			} // End loop of files within the package group
 		} // End loop of package group
