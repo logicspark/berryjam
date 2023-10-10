@@ -931,7 +931,7 @@ export class VueScanner implements Scanner {
 					componentFiles.push({ name, filePath });
 					const vueComponent: VueComponent = {
 						name,
-						source: "",
+						source: filePath,
 						destination: filePath,
 						rows: [],
 						fileInfo: { path: "", property: null },
@@ -1045,13 +1045,42 @@ export class VueScanner implements Scanner {
 				} as ComponentProfile;
 			}
 		);
-
+		this.option.debug &&
+			(await writeFileSync(
+				`${this.option.appDir}/revisedGroupedComponentSources.json`,
+				JSON.stringify(revisedGroupedComponentSources, null, 2)
+			));
 		this.componentProfiles.forEach((ele, idx, arr) => {
 			const tagName = ele.name,
 				source = ele.source.path;
+			// Create a unique key for the component based on the tagName and source path
 			const key = source ? `${tagName}__${source}` : tagName;
+			// Find usage locations for the component based on the key
 			const foundUsageLocations = revisedGroupedComponentSources[key];
-			arr[idx].usageLocations = foundUsageLocations;
+			// Find the import statement that includes the `usage` key associated with the component
+			const foundImportWithUsage = allImportStatements.find(
+				({ importedNames, usage, source: src, sourcePath }) =>
+					importedNames.includes(tagName) &&
+					usage &&
+					source &&
+					[src, sourcePath].includes(source)
+			);
+			// Initialize the component's usageLocations property with foundUsageLocations
+			arr[idx].usageLocations =
+				foundUsageLocations.filter((ele) => ele.rows.length) ?? [];
+			// If there's a foundImportWithUsage, add it to the component's usageLocations
+			if (foundImportWithUsage) {
+				const tmpVueComponent = {
+					name: "",
+					source:
+						foundImportWithUsage.sourcePath ?? foundImportWithUsage.source,
+					destination: foundImportWithUsage.destination,
+					rows: foundImportWithUsage.usage!.lines[
+						foundImportWithUsage.destination
+					],
+				} as VueComponent;
+				arr[idx].usageLocations!.push(tmpVueComponent);
+			}
 		});
 
 		this.mapComponentProfileSource(allImportStatements, children, {
