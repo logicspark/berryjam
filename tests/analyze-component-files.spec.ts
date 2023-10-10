@@ -189,7 +189,7 @@ describe("Normalize Vue components", () => {
 				vueModule: vueCompilerMod as typeof CompilerSFC,
 				babelModule: babelParserMod as typeof BabelParser,
 			});
-		const received = vueScanner.nomalizeComponentChildTag(
+		const received = vueScanner.normalizeComponentChildTag(
 			filePath,
 			componentTags
 		);
@@ -208,6 +208,7 @@ describe("Remove duplicate components", () => {
 			name: "Button",
 			type: "internal",
 			total: 0,
+			deepestNested: 0,
 			source: {
 				path: "C:/projects/berryjam-cli/public/Components/Header.js",
 				property: {
@@ -227,6 +228,7 @@ describe("Remove duplicate components", () => {
 		componentProfiles.push({
 			name: "Button",
 			type: "internal",
+			deepestNested: 0,
 			total: 0,
 			source: {
 				path: "C:/projects/berryjam-cli/public/Components/Header.js",
@@ -246,5 +248,44 @@ describe("Remove duplicate components", () => {
 
 		const received = vueScanner.removeDuplicateComponents(componentProfiles);
 		expect(received).toHaveLength(1);
+	});
+});
+
+describe("parseCode must return `deepestNested` as a number", () => {
+	it("parse `.vue`", async () => {
+		const [vueCompilerMod, babelParserMod] =
+			await vueScanner.getAnalysisToolModules();
+		const filePath = `${directory}/example-vue/AVueComposition.vue`;
+		expect(existsSync(filePath)).toBeTruthy();
+		const { deepestNested } = vueScanner.parseCode(filePath, {
+			vueModule: vueCompilerMod as typeof CompilerSFC,
+			babelModule: babelParserMod as typeof BabelParser,
+		});
+		console.log("deepestNested", deepestNested);
+		expect(deepestNested).toBeGreaterThan(0);
+	});
+	it("parse `.jsx`", async () => {
+		const [vueCompilerMod, babelParserMod] =
+			await vueScanner.getAnalysisToolModules();
+		const filePath = `${directory}/example-jsx/AHook.jsx`;
+		expect(existsSync(filePath)).toBeTruthy();
+		const { deepestNested } = vueScanner.parseCode(filePath, {
+			vueModule: vueCompilerMod as typeof CompilerSFC,
+			babelModule: babelParserMod as typeof BabelParser,
+		});
+		// console.log("deepestNested", deepestNested);
+		expect(deepestNested).toBeGreaterThan(0);
+	});
+	it("parse `.tsx`", async () => {
+		const [vueCompilerMod, babelParserMod] =
+			await vueScanner.getAnalysisToolModules();
+		const filePath = `${directory}/example-tsx/AHook.tsx`;
+		expect(existsSync(filePath)).toBeTruthy();
+		const { deepestNested } = vueScanner.parseCode(filePath, {
+			vueModule: vueCompilerMod as typeof CompilerSFC,
+			babelModule: babelParserMod as typeof BabelParser,
+		});
+		console.log("deepestNested", deepestNested);
+		expect(deepestNested).toBeGreaterThan(0);
 	});
 });

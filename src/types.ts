@@ -47,6 +47,7 @@ export interface VueProperty {
 export interface ParsedCodeResult {
 	componentTags: TraversedTag[];
 	importStatements: ImportStatement[] | null;
+	deepestNested: number;
 	properties?: VueProperty[];
 }
 export interface FileProperty {
@@ -76,6 +77,7 @@ export interface ComponentProfile {
 	type: ComponentSourceType;
 	total: number;
 	source: FileInfo & { package?: LibDependency };
+	deepestNested: number;
 	properties?: VueProperty[];
 	usageLocations?: VueComponent[];
 	groups?: any;
