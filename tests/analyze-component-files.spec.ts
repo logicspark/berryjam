@@ -273,7 +273,6 @@ describe("parseCode must return `deepestNested` as a number", () => {
 			vueModule: vueCompilerMod as typeof CompilerSFC,
 			babelModule: babelParserMod as typeof BabelParser,
 		});
-		// console.log("deepestNested", deepestNested);
 		expect(deepestNested).toBeGreaterThan(0);
 	});
 	it("parse `.tsx`", async () => {
