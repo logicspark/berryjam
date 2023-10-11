@@ -29,7 +29,7 @@ export class GitParser {
 		}
 	}
 
-	parseFile = function (s) {
+	parseFile = function (s: any) {
 		s = s.trim();
 		if (s[0] === '"') {
 			s = s.slice(1, -1);
@@ -177,24 +177,32 @@ export class GitParser {
 					}
 				} else if (line.indexOf("From ") === 0) {
 					matches = line.match(/^From\s([a-z|0-9]*)\s(\w.*)$/);
-					if (matches.length === 3) {
-						this.currentCommit.sha = matches[1];
-						this.currentCommit.date = new Date(matches[2]);
+					if (matches) {
+						if (matches.length === 3) {
+							this.currentCommit.sha = matches[1];
+							this.currentCommit.date = new Date(matches[2]);
+						}
 					}
 				} else if (line.indexOf("From: ") === 0) {
 					matches = line.match(/^From:\s(.*)\s\<(\w.*)\>$/);
-					if (matches.length === 3) {
-						this.currentCommit.author = matches[1];
-						this.currentCommit.email = matches[2];
+					if (matches) {
+						if (matches.length === 3) {
+							this.currentCommit.author = matches[1];
+							this.currentCommit.email = matches[2];
+						} else {
+							console.log(line);
+							exit();
+						}
 					} else {
 						console.log(line);
 						exit();
 					}
 				} else if (line.indexOf("Date: ") === 0) {
 					matches = line.match(/^Date:\s(\w.*)$/);
-
-					if (matches.length === 2) {
-						this.currentCommit.date = new Date(matches[1]);
+					if (matches) {
+						if (matches.length === 2) {
+							this.currentCommit.date = new Date(matches[1]);
+						}
 					}
 				} else if (line.indexOf("Subject: ") === 0) {
 					this.currentCommit.message = line.substr(9);

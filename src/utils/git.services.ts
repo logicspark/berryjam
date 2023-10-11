@@ -15,44 +15,6 @@ export class GitService {
 	}
 
 	/**
-	 * Scan git log of the project to retrieve relevant git history such as.
-	 * author, datetime and file changes to output as a JSON file.
-	 */
-	scan = () => {
-		const currentCommitHash = this.executeCommand(
-			`cd ${this.resolvePath} && git rev-parse HEAD`
-		);
-		if (currentCommitHash) {
-			const currentDate = new Date();
-			const endDate = new Date();
-			endDate.setMonth(currentDate.getMonth() - 12 * 5);
-
-			const rows: ParsedGitDiff[] = [];
-			this.fetchCommits(rows, currentCommitHash as string, endDate);
-
-			// Better viewing of linenumbers
-			let results: ParsedGitDiff[] = [];
-			for (const commit of rows) {
-				if (commit.diff != null) {
-					const diff = new GitParser(commit.diff);
-					commit.files = diff.result;
-				}
-				delete commit.diff;
-				if (commit.files) {
-					if (commit.files.detailed) {
-						results.push(commit);
-					}
-				}
-			}
-			writeGlobJson(
-				this.appDir,
-				JSON.stringify(results, null, 2),
-				this.jsonfile
-			);
-		}
-	};
-
-	/**
 	 * This function sends a string as a command to run in Shell.
 	 *
 	 * @param command - A string of command line.
@@ -130,19 +92,20 @@ export class GitService {
 	fetchCommits = (rows: any[], currentHash: string, endDate: Date) => {
 		const details = this.getCommitDetails(currentHash);
 		if (!details) return;
-		// console.log('details', details)
 		const diff = this.getDiffDetails(currentHash);
-
 		if (details.commitDate.getTime() < endDate.getTime()) {
 			return;
 		}
-		// console.log('details.commitDate.getTime()', details.commitDate.getTime())
 		const previousHash = this.getPreviousCommitHash(currentHash);
-		// console.log('previousHash', previousHash)
 		rows.push({ ...details, diff, previousHash });
 		if (previousHash) {
 			this.fetchCommits(rows, previousHash, endDate);
 		}
+	};
+
+	getOrigin = () => {
+		let origin = this.executeCommand("git remote get-url origin");
+		return origin;
 	};
 
 	/**
@@ -162,9 +125,6 @@ export class GitService {
 
 			for (let i = 0; i < lines.length; i++) {
 				const line = lines[i];
-
-				console.log("line===>", line);
-
 				if (line.startsWith("diff")) {
 					if (currentFile) {
 						files.push(currentFile);
@@ -298,6 +258,42 @@ export class GitService {
 		} catch (error) {
 			console.error("Error while parsing the git diff:", error);
 			return [];
+		}
+	};
+
+	/**
+	 * Scan git log of the project to retrieve relevant git history such as.
+	 * author, datetime and file changes to output as a JSON file.
+	 */
+	scan = () => {
+		const currentCommitHash = this.executeCommand(`git rev-parse HEAD`);
+
+		if (currentCommitHash) {
+			const currentDate = new Date();
+			const endDate = new Date();
+			endDate.setMonth(currentDate.getMonth() - 12 * 5);
+
+			const rows: ParsedGitDiff[] = [];
+			this.fetchCommits(rows, currentCommitHash as string, endDate);
+			// Better viewing of linenumbers
+			let result: ParsedGitDiff[] = [];
+			for (const commit of rows) {
+				if (commit.diff != null) {
+					const diff = new GitParser(commit.diff);
+					commit.files = diff.result;
+				}
+				delete commit.diff;
+				if (commit.files) {
+					if (commit.files.detailed) {
+						result.push(commit);
+					}
+				}
+			}
+			writeGlobJson(
+				this.appDir,
+				JSON.stringify({ origin: this.getOrigin(), result }, null, 2),
+				this.jsonfile
+			);
 		}
 	};
 }
