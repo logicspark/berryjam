@@ -52,7 +52,13 @@ const traverse = require("@babel/traverse").default;
 const htmlTags: string[] = HTML_TAGS;
 const banTags: string[] = BAN_TAGS;
 
-function findDeepestNestedLevelByTraversing(ast: any) {
+/**
+ * Find the deepest level of nesting within a JavaScript Abstract Syntax Tree (AST) by traversing JSX elements.
+ *
+ * @param {any} ast - The JavaScript AST to be analyzed.
+ * @returns {number} The maximum nesting level of JSX elements within the AST.
+ */
+function findDeepestJSXElementNestingLevel(ast: any) {
 	let maxDepth = 0;
 
 	traverse(ast, {
@@ -71,6 +77,13 @@ function findDeepestNestedLevelByTraversing(ast: any) {
 	return maxDepth;
 }
 
+/**
+ * Recursively find the deepest level of nesting within a tree-like structure of Vue Virtual Nodes (VNodes).
+ *
+ * @param {any} node - The current node being analyzed.
+ * @param {number} currentLevel - The current nesting level (default is 0).
+ * @returns {number} The maximum nesting level within the tree of VNodes.
+ */
 function findDeepestNestedElement(node: any, currentLevel = 0) {
 	let maxNestingLevel = currentLevel;
 
@@ -90,6 +103,12 @@ function findDeepestNestedElement(node: any, currentLevel = 0) {
 	return maxNestingLevel;
 }
 
+/**
+ * Wrap the given HTML content with a JSX fragment, ensuring that it's valid JSX syntax.
+ *
+ * @param {string} htmlContent - The HTML content to be wrapped.
+ * @returns {string} The JSX code with the HTML content enclosed in a JSX fragment.
+ */
 function wrapHtmlWithJSXFragment(htmlContent: string) {
 	// Remove leading and trailing whitespace and line breaks
 	const cleanedContent = htmlContent.trim();
@@ -261,7 +280,7 @@ export function parseJsx(
 				properties = getJsxProps(path.node);
 			},
 		});
-		deepestNested = findDeepestNestedLevelByTraversing(parsed);
+		deepestNested = findDeepestJSXElementNestingLevel(parsed);
 	} catch (error) {
 		logger.log(error, "[Func] parseJsx");
 	}
@@ -827,7 +846,7 @@ function parseTsx(fileContent: string, filePath: string) {
 			});
 			deepestNested = Math.max(
 				deepestNested,
-				findDeepestNestedLevelByTraversing(ast)
+				findDeepestJSXElementNestingLevel(ast)
 			);
 			traverse(ast, {
 				JSXElement(path: any) {
@@ -885,7 +904,7 @@ function traverseVueJSXContent(filePath: string, jsxContent: any) {
 			});
 			deepestNested = Math.max(
 				deepestNested,
-				findDeepestNestedLevelByTraversing(ast)
+				findDeepestJSXElementNestingLevel(ast)
 			);
 			traverse(ast, {
 				CallExpression(path: any) {
