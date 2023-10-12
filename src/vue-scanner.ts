@@ -1,11 +1,8 @@
 import { resolve, join, dirname, extname, basename, parse } from "path";
 import { existsSync, readFileSync, mkdirSync, writeFileSync, rmSync } from "fs";
-import { homedir } from "os";
 
 import groupBy from "lodash/groupBy";
 
-import mapValues from "lodash/mapValues";
-import omit from "lodash/omit";
 import {
 	checkFileTypeExists,
 	getSupportedFiles,
