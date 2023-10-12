@@ -45,7 +45,6 @@ import {
 	traverseImports,
 } from "./module.utils";
 import logger from "./logger";
-import { homedir } from "os";
 
 const generate = require("@babel/generator").default;
 const traverse = require("@babel/traverse").default;
@@ -53,7 +52,7 @@ const traverse = require("@babel/traverse").default;
 const htmlTags: string[] = HTML_TAGS;
 const banTags: string[] = BAN_TAGS;
 
-function findDeepestNestedLevel(ast: any) {
+function findDeepestNestedLevelByTraversing(ast: any) {
 	let maxDepth = 0;
 
 	traverse(ast, {
@@ -70,6 +69,25 @@ function findDeepestNestedLevel(ast: any) {
 	});
 
 	return maxDepth;
+}
+
+function findDeepestNestedElement(node: any, currentLevel = 0) {
+	let maxNestingLevel = currentLevel;
+
+	if (node.children) {
+		for (const child of node.children) {
+			if (child.type === 1) {
+				// Type 1 corresponds to VNode (Vue Virtual Node)
+				const childNestingLevel = findDeepestNestedElement(
+					child,
+					currentLevel + 1
+				);
+				maxNestingLevel = Math.max(maxNestingLevel, childNestingLevel);
+			}
+		}
+	}
+
+	return maxNestingLevel;
 }
 
 function wrapHtmlWithJSXFragment(htmlContent: string) {
@@ -97,7 +115,7 @@ export function parseVue(
 	let properties: VueProperty[] = [];
 	let deepestNested = 0;
 	try {
-		const { fileContent, fileName, currentDir } = getFileInfo(filePath);
+		const { fileContent, fileName } = getFileInfo(filePath);
 		const parsed = parse(fileContent, { filename: fileName, sourceMap: false });
 		const { descriptor, errors } = parsed;
 
@@ -120,11 +138,10 @@ export function parseVue(
 			result?.customTags && componentTags.push(...result.customTags);
 			// Identify deepest nested
 			const { content } = template;
-			const jsxAst = babelParse(wrapHtmlWithJSXFragment(content), {
-				sourceType: "module",
-				plugins: ["jsx"],
-			});
-			deepestNested = findDeepestNestedLevel(jsxAst);
+
+			const vueAst = parseDOM(content, { comments: false });
+
+			deepestNested = findDeepestNestedElement(vueAst);
 		}
 	} catch (error) {
 		logger.log(error, `[Func] parseVue ${filePath}`);
@@ -244,7 +261,7 @@ export function parseJsx(
 				properties = getJsxProps(path.node);
 			},
 		});
-		deepestNested = findDeepestNestedLevel(parsed);
+		deepestNested = findDeepestNestedLevelByTraversing(parsed);
 	} catch (error) {
 		logger.log(error, "[Func] parseJsx");
 	}
@@ -808,7 +825,10 @@ function parseTsx(fileContent: string, filePath: string) {
 				sourceType: "module",
 				plugins: ["jsx"],
 			});
-			deepestNested = Math.max(deepestNested, findDeepestNestedLevel(ast));
+			deepestNested = Math.max(
+				deepestNested,
+				findDeepestNestedLevelByTraversing(ast)
+			);
 			traverse(ast, {
 				JSXElement(path: any) {
 					// Extract the tag name
@@ -863,7 +883,10 @@ function traverseVueJSXContent(filePath: string, jsxContent: any) {
 				sourceType: "module",
 				plugins: ["jsx"],
 			});
-			deepestNested = Math.max(deepestNested, findDeepestNestedLevel(ast));
+			deepestNested = Math.max(
+				deepestNested,
+				findDeepestNestedLevelByTraversing(ast)
+			);
 			traverse(ast, {
 				CallExpression(path: any) {
 					const { node } = path;

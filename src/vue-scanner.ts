@@ -507,6 +507,7 @@ export class VueScanner implements Scanner {
 					source,
 					destination: filePath,
 					rows: [row],
+					deepestNested: 0,
 					fileInfo: {
 						path: "",
 						property: {
@@ -923,7 +924,9 @@ export class VueScanner implements Scanner {
 						vueModule: vueCompilerMod as CompilerSFC,
 						babelModule: babelParserMod as BabelParser,
 					});
-
+				if (filePath.includes("LogInPage.vue")) {
+					console.log("LogInPage", deepestNested);
+				}
 				if ([".vue", ".jsx", ".tsx"].includes(extname(filePath))) {
 					// assume it is component, store all file into `componentFiles`
 					const name = parse(filePath).name;
@@ -933,6 +936,7 @@ export class VueScanner implements Scanner {
 						source: filePath,
 						destination: filePath,
 						rows: [],
+						deepestNested,
 						fileInfo: { path: "", property: null },
 					};
 					this.vueComponents.push(vueComponent);
@@ -1030,7 +1034,7 @@ export class VueScanner implements Scanner {
 		this.componentProfiles = Object.entries(revisedGroupedComponentSources).map(
 			(ele) => {
 				const vueComponents = ele[1];
-				const { name, fileInfo, source } = vueComponents.at(0)!;
+				const { name, fileInfo, source, deepestNested } = vueComponents.at(0)!;
 				fileInfo.path = source;
 				const total = vueComponents.reduce((sum, i) => {
 					sum += i.rows.length;
@@ -1040,6 +1044,7 @@ export class VueScanner implements Scanner {
 					name,
 					type: existsSync(source) ? "internal" : null,
 					total,
+					deepestNested,
 					source: fileInfo,
 				} as ComponentProfile;
 			}

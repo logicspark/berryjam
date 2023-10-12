@@ -75,6 +75,7 @@ export interface VueComponent {
 	source: string;
 	destination: string;
 	rows: number[];
+	deepestNested: number;
 	fileInfo: FileInfo;
 	props?: VueProperty[];
 }
