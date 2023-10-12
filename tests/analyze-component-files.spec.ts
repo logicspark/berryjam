@@ -84,7 +84,7 @@ describe("Parse .js file", () => {
  */
 describe("Parse .jsx file", () => {
 	it("should be an object", async () => {
-		const filePath = `${directory}/example-jsx/AHook.jsx`;
+		const filePath = `${directory}/example-jsx/Example.jsx`;
 		const [vueCompilerMod, babelParserMod] =
 			await vueScanner.getAnalysisToolModules();
 		const received = parseJsx(filePath, babelParserMod.parse as BabelParseFunc);
