@@ -391,6 +391,7 @@ export class VueScanner implements Scanner {
 		let parsedResult: ParsedCodeResult = {
 			componentTags: [],
 			importStatements: null,
+			deepestNested: 0,
 			properties: undefined,
 		};
 		const { vueModule, babelModule } = parserModule;
@@ -917,13 +918,11 @@ export class VueScanner implements Scanner {
 			for (const path of files) {
 				allTraversedTags = [];
 				const filePath = path.replace(/\\/g, "/");
-				const { componentTags, importStatements, properties } = this.parseCode(
-					filePath,
-					{
+				const { componentTags, importStatements, properties, deepestNested } =
+					this.parseCode(filePath, {
 						vueModule: vueCompilerMod as CompilerSFC,
 						babelModule: babelParserMod as BabelParser,
-					}
-				);
+					});
 
 				if ([".vue", ".jsx", ".tsx"].includes(extname(filePath))) {
 					// assume it is component, store all file into `componentFiles`
