@@ -261,13 +261,12 @@ describe("parseCode must return `deepestNested` as a number", () => {
 			vueModule: vueCompilerMod as typeof CompilerSFC,
 			babelModule: babelParserMod as typeof BabelParser,
 		});
-		console.log("deepestNested", deepestNested);
 		expect(deepestNested).toBeGreaterThan(0);
 	});
 	it("parse `.jsx`", async () => {
 		const [vueCompilerMod, babelParserMod] =
 			await vueScanner.getAnalysisToolModules();
-		const filePath = `${directory}/example-jsx/AHook.jsx`;
+		const filePath = `${directory}/example-jsx/Example.jsx`;
 		expect(existsSync(filePath)).toBeTruthy();
 		const { deepestNested } = vueScanner.parseCode(filePath, {
 			vueModule: vueCompilerMod as typeof CompilerSFC,
