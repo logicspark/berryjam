@@ -226,7 +226,7 @@ export function parseJsx(
 
 		traverse(parsed, {
 			ImportDeclaration(path: any) {
-				prepareMappedImportDeclaration(mappedImportList, currentDir, path);
+				prepareMappedImportDeclaration(mappedImportList, filePath, path);
 			},
 			JSXElement(path: any) {
 				const tag = path.node.openingElement.name.name;
