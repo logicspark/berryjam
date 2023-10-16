@@ -921,9 +921,6 @@ export class VueScanner implements Scanner {
 						vueModule: vueCompilerMod as CompilerSFC,
 						babelModule: babelParserMod as BabelParser,
 					});
-				if (filePath.includes("LogInPage.vue")) {
-					console.log("LogInPage", deepestNested);
-				}
 				if ([".vue", ".jsx", ".tsx"].includes(extname(filePath))) {
 					// assume it is component, store all file into `componentFiles`
 					const name = parse(filePath).name;

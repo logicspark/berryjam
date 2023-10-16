@@ -320,7 +320,7 @@ export async function getViteAliasPaths(
 	}
 	const viteConfigFilePath = foundConfigFiles.at(0);
 	const extension = extname(viteConfigFilePath!);
-	console.debug({ viteConfigFilePath, extension });
+
 	const plugins: any[] = extension === ".ts" ? ["typescript"] : [];
 	const { fileContent } = getFileInfo(viteConfigFilePath!);
 	const ast = babelParse(fileContent, {
@@ -371,7 +371,6 @@ export async function getViteAliasPaths(
 			}
 		},
 	});
-	console.debug({ pathAlias }, "finished traverse export");
 	return Object.keys(pathAlias).length ? pathAlias : null;
 }
 
