@@ -34,7 +34,7 @@ describe("Git recursively method", () => {
 		expect(received).toBeInstanceOf(Object);
 	});
 
-	it("should be a string", async () => {
+	it("should be an object", async () => {
 		const currentHash = gitService.executeCommand(
 			`cd ${resolvePath} && git rev-parse HEAD`
 		);
@@ -42,10 +42,10 @@ describe("Git recursively method", () => {
 		if (currentHash) {
 			received = gitService.getDiffDetails(currentHash);
 		}
-		expect(typeof received).toBe("string");
+		expect(received).toBeInstanceOf(Object);
 	});
 
-	it("should be a string", async () => {
+	it("should be an object", async () => {
 		const currentHash = gitService.executeCommand(
 			`cd ${resolvePath} && git rev-parse HEAD`
 		);
@@ -53,7 +53,7 @@ describe("Git recursively method", () => {
 		if (currentHash) {
 			received = gitService.getPreviousCommitHash(currentHash);
 		}
-		expect(typeof received).toBe("string");
+		expect(received).toBeInstanceOf(Object);
 	});
 
 	it("should have more than 0 object", async () => {
