@@ -29,8 +29,8 @@ export class GitService {
 				.toString("utf8")
 				.trim();
 		} catch (e) {
-			console.error(`Error executing command: ${exec}`);
-			console.error((e as ExecException).message);
+			// console.error(`Error executing command: ${exec}`);
+			// console.error((e as ExecException).message);
 			return null;
 		}
 	};
