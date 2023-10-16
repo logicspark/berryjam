@@ -7,8 +7,8 @@ let appDir: string;
 let gitService: GitService;
 
 beforeEach(() => {
-	resolvePath = `${__dirname}/../`.replace(/\\/g, "/");
-	appDir = `${__dirname}/../`.replace(/\\/g, "/");
+	resolvePath = `${__dirname}/example/`.replace(/\\/g, "/");
+	appDir = `${__dirname}/example/`.replace(/\\/g, "/");
 	gitService = new GitService(appDir, resolvePath);
 });
 
@@ -34,7 +34,7 @@ describe("Git recursively method", () => {
 		expect(received).toBeInstanceOf(Object);
 	});
 
-	it("should be an object", async () => {
+	it("should be a string", async () => {
 		const currentHash = gitService.executeCommand(
 			`cd ${resolvePath} && git rev-parse HEAD`
 		);
@@ -42,10 +42,10 @@ describe("Git recursively method", () => {
 		if (currentHash) {
 			received = gitService.getDiffDetails(currentHash);
 		}
-		expect(received).toBeInstanceOf(Object);
+		expect(typeof received).toBe("string");
 	});
 
-	it("should be an object", async () => {
+	it("should be a string", async () => {
 		const currentHash = gitService.executeCommand(
 			`cd ${resolvePath} && git rev-parse HEAD`
 		);
@@ -53,7 +53,7 @@ describe("Git recursively method", () => {
 		if (currentHash) {
 			received = gitService.getPreviousCommitHash(currentHash);
 		}
-		expect(received).toBeInstanceOf(Object);
+		expect(typeof received).toBe("string");
 	});
 
 	it("should have more than 0 object", async () => {
