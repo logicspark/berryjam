@@ -7,8 +7,10 @@ let appDir: string;
 let gitService: GitService;
 
 beforeEach(() => {
-	resolvePath = `/home/runner/work/berryjam/berryjam/tests/example/`;
-	appDir = `/home/runner/work/berryjam/berryjam/tests/example/`;
+	resolvePath = `${__dirname}/example/`.replace(/\\/g, "/");
+	appDir = `${__dirname}/example/`.replace(/\\/g, "/");
+	console.log("resolvePath", resolvePath);
+	console.log("appDir", appDir);
 	gitService = new GitService(appDir, resolvePath);
 });
 
