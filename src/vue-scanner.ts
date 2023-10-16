@@ -1,11 +1,8 @@
 import { resolve, join, dirname, extname, basename, parse } from "path";
 import { existsSync, readFileSync, mkdirSync, writeFileSync, rmSync } from "fs";
-import { homedir } from "os";
 
 import groupBy from "lodash/groupBy";
 
-import mapValues from "lodash/mapValues";
-import omit from "lodash/omit";
 import {
 	checkFileTypeExists,
 	getSupportedFiles,
@@ -391,6 +388,7 @@ export class VueScanner implements Scanner {
 		let parsedResult: ParsedCodeResult = {
 			componentTags: [],
 			importStatements: null,
+			deepestNested: 0,
 			properties: undefined,
 		};
 		const { vueModule, babelModule } = parserModule;
@@ -506,6 +504,7 @@ export class VueScanner implements Scanner {
 					source,
 					destination: filePath,
 					rows: [row],
+					deepestNested: 0,
 					fileInfo: {
 						path: "",
 						property: {
@@ -529,7 +528,7 @@ export class VueScanner implements Scanner {
 	 * @param componentTags - An array of component tags to normalize.
 	 * @returns The normalized child component object.
 	 */
-	nomalizeComponentChildTag(filePath: string, componentTags?: TraversedTag[]) {
+	normalizeComponentChildTag(filePath: string, componentTags?: TraversedTag[]) {
 		const child: ChildComponentTag = {
 			total: 0,
 			tags: [],
@@ -819,11 +818,11 @@ export class VueScanner implements Scanner {
 	}
 
 	/**
-	* Write an array of component profiles to a JSON file within the specified app directory.
-
-	* @param componentProfiles An array of component profiles to be written to the file.
-	* @returns The path of the file where the component profiles were written.
-	*/
+	 * Write an array of component profiles to a JSON file within the specified app directory.
+	 * @param componentProfiles An array of component profiles to be written to the file.
+	 * @returns The path of the file where the component profiles were written.
+	 *
+	 */
 	async writeComponentProfilesToJson(
 		componentProfiles: ComponentProfile[]
 	): Promise<string> {
@@ -917,14 +916,14 @@ export class VueScanner implements Scanner {
 			for (const path of files) {
 				allTraversedTags = [];
 				const filePath = path.replace(/\\/g, "/");
-				const { componentTags, importStatements, properties } = this.parseCode(
-					filePath,
-					{
+				const { componentTags, importStatements, properties, deepestNested } =
+					this.parseCode(filePath, {
 						vueModule: vueCompilerMod as CompilerSFC,
 						babelModule: babelParserMod as BabelParser,
-					}
-				);
-
+					});
+				if (filePath.includes("LogInPage.vue")) {
+					console.log("LogInPage", deepestNested);
+				}
 				if ([".vue", ".jsx", ".tsx"].includes(extname(filePath))) {
 					// assume it is component, store all file into `componentFiles`
 					const name = parse(filePath).name;
@@ -934,6 +933,7 @@ export class VueScanner implements Scanner {
 						source: filePath,
 						destination: filePath,
 						rows: [],
+						deepestNested,
 						fileInfo: { path: "", property: null },
 					};
 					this.vueComponents.push(vueComponent);
@@ -959,7 +959,7 @@ export class VueScanner implements Scanner {
 						filePath
 					);
 				}
-				const child = this.nomalizeComponentChildTag(filePath, componentTags);
+				const child = this.normalizeComponentChildTag(filePath, componentTags);
 				children.push(child);
 			} // End loop of files within the package group
 		} // End loop of package group
@@ -1031,7 +1031,7 @@ export class VueScanner implements Scanner {
 		this.componentProfiles = Object.entries(revisedGroupedComponentSources).map(
 			(ele) => {
 				const vueComponents = ele[1];
-				const { name, fileInfo, source } = vueComponents.at(0)!;
+				const { name, fileInfo, source, deepestNested } = vueComponents.at(0)!;
 				fileInfo.path = source;
 				const total = vueComponents.reduce((sum, i) => {
 					sum += i.rows.length;
@@ -1041,6 +1041,7 @@ export class VueScanner implements Scanner {
 					name,
 					type: existsSync(source) ? "internal" : null,
 					total,
+					deepestNested,
 					source: fileInfo,
 				} as ComponentProfile;
 			}

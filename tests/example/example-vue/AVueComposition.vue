@@ -1,12 +1,14 @@
 <script setup lang="ts">
-	const props = defineProps({});
+const props = defineProps({});
 </script>
 <template>
 	<p>AppCompostionAPI</p>
-	<custom-comp></custom-comp>
+	<custom-comp>
+		<p>Test<span>RED</span></p>
+	</custom-comp>
 </template>
 <style>
-	p {
-		content: "";
-	}
+p {
+	content: "";
+}
 </style>
