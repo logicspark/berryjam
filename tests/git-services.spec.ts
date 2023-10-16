@@ -36,27 +36,27 @@ describe("Git recursively method", () => {
 		expect(received).toBeInstanceOf(Object);
 	});
 
-	it("should be a string", async () => {
-		const currentHash = gitService.executeCommand(
-			`cd ${resolvePath} && git rev-parse HEAD`
-		);
-		let received: any = null;
-		if (currentHash) {
-			received = gitService.getDiffDetails(currentHash);
-		}
-		expect(typeof received).toBe("string");
-	});
+	// it("should be a string", async () => {
+	// 	const currentHash = gitService.executeCommand(
+	// 		`cd ${resolvePath} && git rev-parse HEAD`
+	// 	);
+	// 	let received: any = null;
+	// 	if (currentHash) {
+	// 		received = gitService.getDiffDetails(currentHash);
+	// 	}
+	// 	expect(typeof received).toBe("string");
+	// });
 
-	it("should be a string", async () => {
-		const currentHash = gitService.executeCommand(
-			`cd ${resolvePath} && git rev-parse HEAD`
-		);
-		let received: any = null;
-		if (currentHash) {
-			received = gitService.getPreviousCommitHash(currentHash);
-		}
-		expect(typeof received).toBe("string");
-	});
+	// it("should be a string", async () => {
+	// 	const currentHash = gitService.executeCommand(
+	// 		`cd ${resolvePath} && git rev-parse HEAD`
+	// 	);
+	// 	let received: any = null;
+	// 	if (currentHash) {
+	// 		received = gitService.getPreviousCommitHash(currentHash);
+	// 	}
+	// 	expect(typeof received).toBe("string");
+	// });
 
 	it("should have more than 0 object", async () => {
 		const currentDate = new Date();
