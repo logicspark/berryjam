@@ -84,7 +84,7 @@ describe("Parse .js file", () => {
  */
 describe("Parse .jsx file", () => {
 	it("should be an object", async () => {
-		const filePath = `${directory}/example-jsx/AHook.jsx`;
+		const filePath = `${directory}/example-jsx/Example.jsx`;
 		const [vueCompilerMod, babelParserMod] =
 			await vueScanner.getAnalysisToolModules();
 		const received = parseJsx(filePath, babelParserMod.parse as BabelParseFunc);
@@ -189,7 +189,7 @@ describe("Normalize Vue components", () => {
 				vueModule: vueCompilerMod as typeof CompilerSFC,
 				babelModule: babelParserMod as typeof BabelParser,
 			});
-		const received = vueScanner.nomalizeComponentChildTag(
+		const received = vueScanner.normalizeComponentChildTag(
 			filePath,
 			componentTags
 		);
@@ -208,6 +208,7 @@ describe("Remove duplicate components", () => {
 			name: "Button",
 			type: "internal",
 			total: 0,
+			deepestNested: 0,
 			source: {
 				path: "C:/projects/berryjam-cli/public/Components/Header.js",
 				property: {
@@ -223,28 +224,64 @@ describe("Remove duplicate components", () => {
 			groups: [],
 			children: { total: 1, tags: ["Button"], source: "" },
 		},
-			// Push 2nd object
-			{
-				name: "Button",
-				type: "internal",
-				total: 0,
-				source: {
-					path: "C:/projects/berryjam-cli/public/Components/Header.js",
-					property: {
-						dataLastModified: "Fri Apr 28 2023",
-						lastModified: "Fri Apr 28 2023",
-						created: "2023-04-17T04:04:04.000Z",
-						createdBy: "system",
-						updatedBy: "system",
-					},
+		// Push 2nd object
+		{
+			name: "Button",
+			type: "internal",
+			total: 0,
+			source: {
+				path: "C:/projects/berryjam-cli/public/Components/Header.js",
+				property: {
+					dataLastModified: "Fri Apr 28 2023",
+					lastModified: "Fri Apr 28 2023",
+					created: "2023-04-17T04:04:04.000Z",
+					createdBy: "system",
+					updatedBy: "system",
 				},
-				properties: [],
-				usageLocations: [],
-				groups: [],
-				children: { total: 1, tags: ["Button"], source: "" },
-			});
+			},
+			properties: [],
+			usageLocations: [],
+			groups: [],
+			children: { total: 1, tags: ["Button"], source: "" },
+		});
 
 		const received = vueScanner.removeDuplicateComponents(componentProfiles);
 		expect(received).toHaveLength(1);
+	});
+});
+
+describe("parseCode must return `deepestNested` as a number", () => {
+	it("parse `.vue`", async () => {
+		const [vueCompilerMod, babelParserMod] =
+			await vueScanner.getAnalysisToolModules();
+		const filePath = `${directory}/example-vue/AVueComposition.vue`;
+		expect(existsSync(filePath)).toBeTruthy();
+		const { deepestNested } = vueScanner.parseCode(filePath, {
+			vueModule: vueCompilerMod as typeof CompilerSFC,
+			babelModule: babelParserMod as typeof BabelParser,
+		});
+		expect(deepestNested).toBeGreaterThan(0);
+	});
+	it("parse `.jsx`", async () => {
+		const [vueCompilerMod, babelParserMod] =
+			await vueScanner.getAnalysisToolModules();
+		const filePath = `${directory}/example-jsx/Example.jsx`;
+		expect(existsSync(filePath)).toBeTruthy();
+		const { deepestNested } = vueScanner.parseCode(filePath, {
+			vueModule: vueCompilerMod as typeof CompilerSFC,
+			babelModule: babelParserMod as typeof BabelParser,
+		});
+		expect(deepestNested).toBeGreaterThan(0);
+	});
+	it("parse `.tsx`", async () => {
+		const [vueCompilerMod, babelParserMod] =
+			await vueScanner.getAnalysisToolModules();
+		const filePath = `${directory}/example-tsx/Example.tsx`;
+		expect(existsSync(filePath)).toBeTruthy();
+		const { deepestNested } = vueScanner.parseCode(filePath, {
+			vueModule: vueCompilerMod as typeof CompilerSFC,
+			babelModule: babelParserMod as typeof BabelParser,
+		});
+		expect(deepestNested).toBeGreaterThan(0);
 	});
 });

@@ -17,6 +17,9 @@ importers:
       '@babel/parser':
         specifier: ^7.22.11
         version: 7.22.11
+      '@babel/plugin-transform-typescript':
+        specifier: ^7.22.15
+        version: 7.22.15(@babel/core@7.22.11)
       '@babel/preset-typescript':
         specifier: ^7.22.15
         version: 7.22.15(@babel/core@7.22.11)
@@ -181,7 +184,7 @@ packages:
     resolution: {integrity: sha512-LvBTxu8bQSQkcyKOU+a1btnNFQ1dMAd0R6PyW3arXes06F6QLWLIrd681bxRPIXlrMGR3XYnW9JyML7dP3qgxg==}
     engines: {node: '>=6.9.0'}
     dependencies:
-      '@babel/types': 7.22.11
+      '@babel/types': 7.22.19
     dev: false
 
   /@babel/helper-compilation-targets@7.22.15:
@@ -259,7 +262,7 @@ packages:
     resolution: {integrity: sha512-HBwaojN0xFRx4yIvpwGqxiV2tUfl7401jlok564NgB9EHS1y6QT17FmKWm4ztqjeVdXLuC4fSvHc5ePpQjoTbw==}
     engines: {node: '>=6.9.0'}
     dependencies:
-      '@babel/types': 7.22.11
+      '@babel/types': 7.22.19
     dev: false
 
   /@babel/helper-plugin-utils@7.22.5:
@@ -288,7 +291,7 @@ packages:
     resolution: {integrity: sha512-tK14r66JZKiC43p8Ki33yLBVJKlQDFoA8GYN67lWCDCqoL6EMMSuM9b+Iff2jHaM/RRFYl7K+iiru7hbRqNx8Q==}
     engines: {node: '>=6.9.0'}
     dependencies:
-      '@babel/types': 7.22.11
+      '@babel/types': 7.22.19
     dev: false
 
   /@babel/helper-split-export-declaration@7.22.6:
