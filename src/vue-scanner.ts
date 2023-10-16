@@ -1,12 +1,14 @@
-import { resolve, join, dirname, extname, basename } from "path";
+import { resolve, join, dirname, extname, basename, parse } from "path";
 import { existsSync, readFileSync, mkdirSync, writeFileSync, rmSync } from "fs";
-import { homedir } from "os";
-import countBy from "lodash/countBy";
+
 import groupBy from "lodash/groupBy";
-import map from "lodash/map";
-import mapValues from "lodash/mapValues";
-import omit from "lodash/omit";
-import { checkFileTypeExists, getSupportedFiles } from "./utils/file.utils";
+
+import {
+	checkFileTypeExists,
+	getSupportedFiles,
+	transformStringToRegex,
+	writeResultToFile,
+} from "./utils/file.utils";
 import { DEF_IGNORE_FILES, SUPPORT_EXT } from "./utils/constants";
 import type {
 	VueScannerOption,
@@ -19,6 +21,8 @@ import type {
 	ParsedCodeResult,
 	VueProperty,
 	VueComponent,
+	OutputFormat,
+	ImportStatementUsage,
 } from "./types";
 import { spawnSync } from "node:child_process";
 import {
@@ -34,12 +38,17 @@ import {
 	parseComponentsDeclaration,
 	parseTypescript,
 } from "./utils/compiler";
-import { kebabCaseToPascalCase } from "./utils/text.utils";
+import {
+	kebabCaseToPascalCase,
+	pascalCaseToKebabCase,
+} from "./utils/text.utils";
 import { GitService } from "./utils/git.services";
+import logger from "./utils/logger";
 
 type CompilerSFC = typeof import("@vue/compiler-sfc");
 type BabelParser = typeof import("@babel/parser");
 
+const defaultOutput: OutputFormat = "json";
 abstract class Scanner {
 	scanPath!: string;
 	option!: VueScannerOption;
@@ -62,8 +71,10 @@ export class VueScanner implements Scanner {
 	 */
 	constructor(path: string, option: VueScannerOption) {
 		this.scanPath = resolve(path);
-		this.option = option;
-		// Create a set of ignored paths by combining default ignored files with custom ignored files from options
+		this.option = { output: defaultOutput, ...option };
+		// Create a set of ignored paths by
+		// combining default ignored files with custom ignored files
+		// from the options
 		this.ignorePathSet = [
 			...new Set([...DEF_IGNORE_FILES, ...(option.ignore ?? [])]),
 		];
@@ -81,6 +92,8 @@ export class VueScanner implements Scanner {
 		if (!existsSync(appDir)) {
 			mkdirSync(appDir, { recursive: true });
 		}
+
+		logger.setVerboseMode(this.option.verbose ?? false);
 	}
 
 	/**
@@ -375,6 +388,7 @@ export class VueScanner implements Scanner {
 		let parsedResult: ParsedCodeResult = {
 			componentTags: [],
 			importStatements: null,
+			deepestNested: 0,
 			properties: undefined,
 		};
 		const { vueModule, babelModule } = parserModule;
@@ -461,6 +475,7 @@ export class VueScanner implements Scanner {
 		importStatements: ImportStatement[] | null,
 		filePath: string
 	) {
+		const ignorePatterns = this.ignorePathSet.map(transformStringToRegex);
 		allTraversedTags.forEach((ele) => {
 			const { tag, row } = ele;
 			const transformedTag = kebabCaseToPascalCase(tag).toLowerCase();
@@ -480,11 +495,16 @@ export class VueScanner implements Scanner {
 			if (foundSourceElem) {
 				foundSourceElem.rows.push(row);
 			} else {
-				this.vueComponents.push({
+				// Check if the file path matchs in the `ignorePatterns` array.
+				if (ignorePatterns.some((pattern) => source.match(pattern))) {
+					return;
+				}
+				const vueComponent = {
 					name: tag,
 					source,
 					destination: filePath,
 					rows: [row],
+					deepestNested: 0,
 					fileInfo: {
 						path: "",
 						property: {
@@ -495,7 +515,8 @@ export class VueScanner implements Scanner {
 							updatedBy: "",
 						},
 					},
-				});
+				};
+				this.vueComponents.push(vueComponent);
 			}
 		});
 	}
@@ -507,7 +528,7 @@ export class VueScanner implements Scanner {
 	 * @param componentTags - An array of component tags to normalize.
 	 * @returns The normalized child component object.
 	 */
-	nomalizeComponentChildTag(filePath: string, componentTags?: TraversedTag[]) {
+	normalizeComponentChildTag(filePath: string, componentTags?: TraversedTag[]) {
 		const child: ChildComponentTag = {
 			total: 0,
 			tags: [],
@@ -534,11 +555,41 @@ export class VueScanner implements Scanner {
 			importStatements,
 			"sourcePath"
 		);
+		this.option.debug &&
+			writeFileSync(
+				`${this.option.appDir}/importStatementsGroupedBySourcePath.json`,
+				JSON.stringify(importStatementsGroupedBySourcePath, null, 2)
+			);
 		const revisedImportStatement: ImportStatement[] = [];
 		Object.entries(importStatementsGroupedBySourcePath).forEach((ele) => {
 			const source = ele[0],
 				importedList = ele[1];
-			const firstSourcePath = importedList.at(0)?.source ?? "";
+			if (!importedList.length) return;
+			const { source: firstSourcePath, destination } = importedList.at(0)!;
+			const foundImportWithUsage = importedList.find((ele) => ele.usage);
+
+			let usage: ImportStatementUsage | undefined = undefined;
+			if (foundImportWithUsage) {
+				const importedListGroupedByDestination = groupBy(
+					importedList,
+					"destination"
+				);
+				const lines = {} as Record<string, number[]>;
+				importedList.forEach(({ destination }) => {
+					const tmp = importedListGroupedByDestination[destination].reduce(
+						(arr, el) => {
+							el.usage && arr.push(...el.usage.lines[destination]);
+							return arr;
+						},
+						[] as number[]
+					);
+					lines[destination] = tmp;
+				});
+				usage = {
+					...foundImportWithUsage.usage!,
+					lines,
+				};
+			}
 			const { exists, filePath } = checkFileTypeExists(source, SUPPORT_EXT);
 			revisedImportStatement.push({
 				importedNames: importedList.reduce((arr, i) => {
@@ -548,6 +599,8 @@ export class VueScanner implements Scanner {
 				source: firstSourcePath,
 				sourcePath: filePath,
 				importSourceType: exists ? "internal" : "external",
+				destination,
+				...(usage && { usage }),
 			});
 		});
 		return revisedImportStatement;
@@ -611,6 +664,7 @@ export class VueScanner implements Scanner {
 			if (!foundImportedTags?.length) {
 				return;
 			}
+
 			const foundImportedTagSameSource = foundImportedTags.find((i) =>
 				[i.sourcePath, i.source].includes(componentSource.path)
 			);
@@ -624,7 +678,8 @@ export class VueScanner implements Scanner {
 					{},
 					foundImportedTagSameSource ?? foundImportedTag
 				);
-				const { importSourceType, source, sourcePath } = foundMapped;
+				const { importSourceType, source, sourcePath, destination } =
+					foundMapped;
 				const existedSource = sourcePath?.length ? sourcePath : source;
 				ele.type = importSourceType;
 				ele.source.path = existedSource.replace(/\\/g, "/");
@@ -666,15 +721,18 @@ export class VueScanner implements Scanner {
 	removeDuplicateComponents(componentProfiles: ComponentProfile[]) {
 		const deletedIdxList: number[] = [];
 		componentProfiles.forEach((ele, idx, arr) => {
-			const tagName = ele.name,
-				source = ele.source.path,
-				mainUsageLocations = ele.usageLocations ?? [];
 			if (deletedIdxList.includes(idx)) {
 				return;
 			}
+			const tagName = ele.name,
+				source = ele.source.path,
+				mainUsageLocations = ele.usageLocations ?? [];
+			const pascalCase = kebabCaseToPascalCase(tagName);
+			const kebabCase = pascalCaseToKebabCase(tagName);
 			const duplicatedTagWithIndices = arr.reduce(
 				(acc, curr, index) => {
-					const isTagExisted = curr.name === tagName;
+					// const isTagExisted = curr.name === tagName;
+					const isTagExisted = [pascalCase, kebabCase].includes(curr.name);
 					const deleteIdxExisted = deletedIdxList.includes(index);
 					const isSourceExisted =
 						(!curr.source.path && !curr.source.package) ||
@@ -745,6 +803,24 @@ export class VueScanner implements Scanner {
 	}
 
 	/**
+	 * Write an array of component profiles to a JSON file within the specified app directory.
+	 * @param componentProfiles An array of component profiles to be written to the file.
+	 * @returns The path of the file where the component profiles were written.
+	 *
+	 */
+	async writeComponentProfilesToJson(
+		componentProfiles: ComponentProfile[]
+	): Promise<string> {
+		// Construct the path to the output file
+		const outputPath = `${this.option.appDir}/component-profiles.json`;
+		// Convert the component profiles to a formatted JSON string and write to the file
+		return await writeResultToFile(
+			outputPath,
+			JSON.stringify(componentProfiles, null, 2)
+		);
+	}
+
+	/**
 	 * Scan the project directory for Vue components, analyzes their structure, and collects information.
 	 *
 	 * @returns A promise that resolves an array of component profiles.
@@ -758,6 +834,8 @@ export class VueScanner implements Scanner {
 		let aliasPath: Record<string, string[]> | null = null,
 			allImportStatements: ImportStatement[] = [];
 		let allTraversedTags: TraversedTag[] = [];
+
+		const componentFiles: { name: string; filePath: string }[] = [];
 
 		/*********
 		 * Step 1 *
@@ -823,13 +901,25 @@ export class VueScanner implements Scanner {
 			for (const path of files) {
 				allTraversedTags = [];
 				const filePath = path.replace(/\\/g, "/");
-				const { componentTags, importStatements, properties } = this.parseCode(
-					filePath,
-					{
+				const { componentTags, importStatements, properties, deepestNested } =
+					this.parseCode(filePath, {
 						vueModule: vueCompilerMod as CompilerSFC,
 						babelModule: babelParserMod as BabelParser,
-					}
-				);
+					});
+				if ([".vue", ".jsx", ".tsx"].includes(extname(filePath))) {
+					// assume it is component, store all file into `componentFiles`
+					const name = parse(filePath).name;
+					componentFiles.push({ name, filePath });
+					const vueComponent: VueComponent = {
+						name,
+						source: filePath,
+						destination: filePath,
+						rows: [],
+						deepestNested,
+						fileInfo: { path: "", property: null },
+					};
+					this.vueComponents.push(vueComponent);
+				}
 				// Store all import statements into `allImportStatements`
 				if (importStatements?.length) {
 					allImportStatements = this.updateImportStatementsWithTransformedPaths(
@@ -851,16 +941,33 @@ export class VueScanner implements Scanner {
 						filePath
 					);
 				}
-				const child = this.nomalizeComponentChildTag(filePath, componentTags);
+				const child = this.normalizeComponentChildTag(filePath, componentTags);
 				children.push(child);
 			} // End loop of files within the package group
 		} // End loop of package group
+
+		this.option.debug &&
+			(await writeFileSync(
+				`${this.option.appDir}/componentFiles.json`,
+				JSON.stringify(componentFiles, null, 2)
+			));
+
+		this.option.debug &&
+			(await writeFileSync(
+				`${this.option.appDir}/vueComponents.json`,
+				JSON.stringify(this.vueComponents, null, 2)
+			));
 
 		/*********
 		 * Step 5 *
 		 *********/
 		// Remove duplicate import statements
 		allImportStatements = this.distinctImportStatements(allImportStatements);
+		this.option.debug &&
+			(await writeFileSync(
+				`${this.option.appDir}/distinctedAllImportStatements.json`,
+				JSON.stringify(allImportStatements, null, 2)
+			));
 		// Group component sources by name and source path.
 		const groupedComponentSources = groupBy(this.vueComponents, (item) => {
 			if (!item.source) {
@@ -874,11 +981,39 @@ export class VueScanner implements Scanner {
 				`${this.option.appDir}/groupedComponentSources.json`,
 				JSON.stringify(groupedComponentSources, null, 2)
 			));
+
+		// Revises a grouped object of component sources by merging entries with similar keys.
+		const revisedGroupedComponentSources = Object.entries(
+			groupedComponentSources
+		).reduce(
+			(acc, [key, value]) => {
+				// Split the key into tagName and sourcePath
+				const [tagName, sourcePath] = key.split("__");
+				// Convert tagName to kebab-case and camelCase
+				const kebabCase = pascalCaseToKebabCase(tagName);
+				const pascalCase = kebabCaseToPascalCase(tagName);
+				// Find an existing key that matches either kebab-case or pascalCase
+				const foundKey = Object.keys(acc).find((k) =>
+					[
+						`${kebabCase}__${sourcePath}`,
+						`${pascalCase}__${sourcePath}`,
+					].includes(k)
+				);
+				// If a matching key is found, merge the values; otherwise, create a new entry
+				if (foundKey) {
+					acc[foundKey] = acc[foundKey].concat(value);
+				} else {
+					acc[key] = value;
+				}
+				return acc;
+			},
+			{} as Record<string, VueComponent[]>
+		);
 		// Create component profiles from grouped sources.
-		this.componentProfiles = Object.entries(groupedComponentSources).map(
+		this.componentProfiles = Object.entries(revisedGroupedComponentSources).map(
 			(ele) => {
 				const vueComponents = ele[1];
-				const { name, fileInfo, source } = vueComponents.at(0)!;
+				const { name, fileInfo, source, deepestNested } = vueComponents.at(0)!;
 				fileInfo.path = source;
 				const total = vueComponents.reduce((sum, i) => {
 					sum += i.rows.length;
@@ -886,19 +1021,49 @@ export class VueScanner implements Scanner {
 				}, 0);
 				return {
 					name,
-					type: null,
+					type: existsSync(source) ? "internal" : null,
 					total,
+					deepestNested,
 					source: fileInfo,
 				} as ComponentProfile;
 			}
 		);
-
+		this.option.debug &&
+			(await writeFileSync(
+				`${this.option.appDir}/revisedGroupedComponentSources.json`,
+				JSON.stringify(revisedGroupedComponentSources, null, 2)
+			));
 		this.componentProfiles.forEach((ele, idx, arr) => {
 			const tagName = ele.name,
 				source = ele.source.path;
+			// Create a unique key for the component based on the tagName and source path
 			const key = source ? `${tagName}__${source}` : tagName;
-			const foundUsageLocations = groupedComponentSources[key];
-			arr[idx].usageLocations = foundUsageLocations;
+			// Find usage locations for the component based on the key
+			const foundUsageLocations = revisedGroupedComponentSources[key];
+			// Find the import statement that includes the `usage` key associated with the component
+			const foundImportWithUsage = allImportStatements.find(
+				({ importedNames, usage, source: src, sourcePath }) =>
+					importedNames.includes(tagName) &&
+					usage &&
+					source &&
+					[src, sourcePath].includes(source)
+			);
+			// Initialize the component's usageLocations property with foundUsageLocations
+			arr[idx].usageLocations =
+				foundUsageLocations.filter((ele) => ele.rows.length) ?? [];
+			// If there's a foundImportWithUsage, add it to the component's usageLocations
+			if (foundImportWithUsage) {
+				const tmpVueComponent = {
+					name: "",
+					source:
+						foundImportWithUsage.sourcePath ?? foundImportWithUsage.source,
+					destination: foundImportWithUsage.destination,
+					rows: foundImportWithUsage.usage!.lines[
+						foundImportWithUsage.destination
+					],
+				} as VueComponent;
+				arr[idx].usageLocations!.push(tmpVueComponent);
+			}
 		});
 
 		this.mapComponentProfileSource(allImportStatements, children, {
@@ -914,6 +1079,18 @@ export class VueScanner implements Scanner {
 			new GitService(this.option.appDir, this.scanPath).scan();
 		}
 
+		if (this.option?.output) {
+			switch (this.option.output) {
+				case "json":
+					await this.writeComponentProfilesToJson(this.componentProfiles);
+					break;
+				case "stdout":
+					console.log(this.componentProfiles);
+					break;
+				default:
+					break;
+			}
+		}
 		return this.componentProfiles;
 	}
 }

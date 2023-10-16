@@ -1,13 +1,12 @@
-import { transformSync } from "@babel/core";
+import { transformSync, createConfigItem } from "@babel/core";
 import BabelParser, { parse as babelParse } from "@babel/parser";
-import { parse as domParse, NodeTypes } from "@vue/compiler-dom";
+import { parse as parseDOM, NodeTypes } from "@vue/compiler-dom";
 import CompilerSFC, { compileScript, SFCDescriptor } from "@vue/compiler-sfc";
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import * as ts from "typescript";
 
-import { readFileSync } from "fs";
 import { dirname, join, resolve } from "path";
-import { BAN_TAGS } from "./constants";
+import { BAN_TAGS, SUPPORT_EXT } from "./constants";
 import { checkFileTypeExists, getFileInfo } from "./file.utils";
 import { HTML_TAGS } from "./html-tags";
 import { VueASTNode } from "../types";
@@ -40,18 +39,84 @@ import {
 	VariableDeclaration,
 	VariableDeclarator,
 } from "@babel/types";
-import { SUPPORT_EXT } from "./constants";
-// import logger, { logErrorMessage } from "./logger";
+
 import {
 	prepareMappedImportDeclaration,
 	traverseImports,
 } from "./module.utils";
+import logger from "./logger";
 
 const generate = require("@babel/generator").default;
 const traverse = require("@babel/traverse").default;
 
 const htmlTags: string[] = HTML_TAGS;
 const banTags: string[] = BAN_TAGS;
+
+/**
+ * Find the deepest level of nesting within a JavaScript Abstract Syntax Tree (AST) by traversing JSX elements.
+ *
+ * @param {any} ast - The JavaScript AST to be analyzed.
+ * @returns {number} The maximum nesting level of JSX elements within the AST.
+ */
+function findDeepestJSXElementNestingLevel(ast: any) {
+	let maxDepth = 0;
+
+	traverse(ast, {
+		JSXElement: {
+			enter(path: any) {
+				const depth = path
+					.getAncestry()
+					.filter((e: any) => ["JSXElement"].includes(e.type)).length;
+				if (depth > maxDepth) {
+					maxDepth = depth;
+				}
+			},
+		},
+	});
+
+	return maxDepth;
+}
+
+/**
+ * Recursively find the deepest level of nesting within a tree-like structure of Vue Virtual Nodes (VNodes).
+ *
+ * @param {any} node - The current node being analyzed.
+ * @param {number} currentLevel - The current nesting level (default is 0).
+ * @returns {number} The maximum nesting level within the tree of VNodes.
+ */
+function findDeepestNestedElement(node: any, currentLevel = 0) {
+	let maxNestingLevel = currentLevel;
+
+	if (node.children) {
+		for (const child of node.children) {
+			if (child.type === 1) {
+				// Type 1 corresponds to VNode (Vue Virtual Node)
+				const childNestingLevel = findDeepestNestedElement(
+					child,
+					currentLevel + 1
+				);
+				maxNestingLevel = Math.max(maxNestingLevel, childNestingLevel);
+			}
+		}
+	}
+
+	return maxNestingLevel;
+}
+
+/**
+ * Wrap the given HTML content with a JSX fragment, ensuring that it's valid JSX syntax.
+ *
+ * @param {string} htmlContent - The HTML content to be wrapped.
+ * @returns {string} The JSX code with the HTML content enclosed in a JSX fragment.
+ */
+function wrapHtmlWithJSXFragment(htmlContent: string) {
+	// Remove leading and trailing whitespace and line breaks
+	const cleanedContent = htmlContent.trim();
+
+	// Wrap the cleaned content with a JSX fragment
+	const jsxContent = `<>${cleanedContent}</>`;
+	return jsxContent;
+}
 
 export function parseVue(
 	filePath: string,
@@ -67,8 +132,9 @@ export function parseVue(
 	const componentTags: TraversedTag[] = [];
 	let importStatements: ImportStatement[] | null = null;
 	let properties: VueProperty[] = [];
+	let deepestNested = 0;
 	try {
-		const { fileContent, fileName, currentDir } = getFileInfo(filePath);
+		const { fileContent, fileName } = getFileInfo(filePath);
 		const parsed = parse(fileContent, { filename: fileName, sourceMap: false });
 		const { descriptor, errors } = parsed;
 
@@ -76,29 +142,34 @@ export function parseVue(
 			throw errors;
 		}
 		const { template, script, scriptSetup } = descriptor;
-
 		properties = compileVue(descriptor, filePath);
 
 		const scriptContent = `${script?.content || scriptSetup?.content || ""}`;
 		importStatements = traverseImports(
-			currentDir,
+			filePath,
 			scriptContent,
 			babelParse,
 			script?.lang || scriptSetup?.lang
 		);
-
 		if (template) {
 			const ast = template.ast as unknown as VueASTNode;
 			const result = traverseVueTags(ast, [], []);
 			result?.customTags && componentTags.push(...result.customTags);
+			// Identify deepest nested
+			const { content } = template;
+
+			const vueAst = parseDOM(content, { comments: false });
+
+			deepestNested = findDeepestNestedElement(vueAst);
 		}
 	} catch (error) {
-		console.error(error, `[Func] parseVue ${filePath}`);
+		logger.log(error, `[Func] parseVue ${filePath}`);
 	}
 	return {
 		componentTags,
 		importStatements,
 		properties,
+		deepestNested,
 	};
 }
 
@@ -158,11 +229,12 @@ export function parseJs(
 			},
 		});
 	} catch (error) {
-		console.error(error, `[Func] parseJs => ${filePath}`);
+		logger.log(error, `[Func] parseJs => ${filePath}`);
 	}
 	return {
 		componentTags: customTags,
 		importStatements: mappedImportList?.length ? mappedImportList : null,
+		deepestNested: 0,
 	};
 }
 
@@ -176,9 +248,10 @@ export function parseJsx(
 	const customTags: TraversedTag[] = [];
 	const mappedImportList: ImportStatement[] = [];
 	let properties: VueProperty[] = [];
+	let deepestNested = 0;
 	const { fileContent, currentDir } = getFileInfo(filePath);
 	try {
-		const parsed = parse(fileContent, {
+		let parsed = parse(fileContent, {
 			sourceType: "module",
 			plugins: ["jsx"],
 		});
@@ -186,13 +259,15 @@ export function parseJsx(
 		if (errors?.length) {
 			throw errors;
 		}
+
 		traverse(parsed, {
 			ImportDeclaration(path: any) {
-				prepareMappedImportDeclaration(mappedImportList, currentDir, path);
+				prepareMappedImportDeclaration(mappedImportList, filePath, path);
 			},
 			JSXElement(path: any) {
 				const tag = path.node.openingElement.name.name;
 				const row = path.node.openingElement.loc.start.line;
+
 				if (tag) {
 					const traverseTag = {
 						tag,
@@ -205,13 +280,15 @@ export function parseJsx(
 				properties = getJsxProps(path.node);
 			},
 		});
+		deepestNested = findDeepestJSXElementNestingLevel(parsed);
 	} catch (error) {
-		console.error(error, "[Func] parseJsx");
+		logger.log(error, "[Func] parseJsx");
 	}
 	return {
 		componentTags: customTags,
 		importStatements: mappedImportList.length ? mappedImportList : null,
 		properties,
+		deepestNested,
 	};
 }
 
@@ -224,12 +301,13 @@ export function parseTypescript(
 	) => BabelParser.ParseResult<any>
 ): ParsedCodeResult {
 	let componentTags: TraversedTag[] = [];
-	const { fileContent, currentDir } = getFileInfo(filePath);
+	const { fileContent } = getFileInfo(filePath);
 	let importStatements: ImportStatement[] | null = null;
 	let properties: VueProperty[] = [];
+	let deepestNested = 0;
 	try {
 		importStatements = traverseImports(
-			currentDir,
+			filePath,
 			fileContent,
 			babelParse,
 			extension
@@ -238,16 +316,17 @@ export function parseTypescript(
 			if (extension === ".tsx") {
 				const result = parseTsx(fileContent, filePath);
 				componentTags = result.componentTags;
+				deepestNested = result.deepestNested;
 			}
 		} catch (err) {
-			console.error(err, `[Func parseTypescript] ${filePath}`);
+			logger.log(err, `[Func parseTypescript] ${filePath}`);
 		}
 		properties = getTsxProps(fileContent, filePath);
 	} catch (error) {
-		console.error(error, filePath);
+		logger.log(error, filePath);
 	}
 
-	return { componentTags, importStatements, properties };
+	return { componentTags, importStatements, properties, deepestNested };
 }
 
 export function parseComponentsDeclaration(
@@ -297,6 +376,7 @@ export function parseComponentsDeclaration(
 											? resolve(currentDir, importFrom)
 											: importFrom,
 										importSourceType: isRelative ? "internal" : "external",
+										destination: filePath,
 									} as ImportStatement;
 									componentDeclarations.push(currentImportLine);
 								}
@@ -323,7 +403,7 @@ export function parseComponentsDeclaration(
 		});
 		// logger.debug({ componentDeclarations: componentDeclarations.length });
 	} catch (error) {
-		console.error(error, "[Func] parseComponentsDeclaration");
+		logger.log(error, "[Func] parseComponentsDeclaration");
 	}
 
 	return componentDeclarations.length ? componentDeclarations : null;
@@ -354,11 +434,11 @@ export function parseNuxtGlobalTypes(filePath: string) {
 				return ele;
 			});
 		} catch (error) {
-			console.error(error, "[Func] parseNuxtGlobalTypes");
+			logger.log(error, "[Func] parseNuxtGlobalTypes");
 			return null;
 		}
 	} else {
-		console.error(
+		logger.log(
 			{ error: "Failed to read file", filePath },
 			"[Func] parseNuxtGlobalTypes"
 		);
@@ -423,8 +503,8 @@ function handleNode(node: ts.Node): ImportStatement[] {
 								const importType = member.type
 									? member.type.getText()
 									: undefined;
-								console.log("Component:", componentName);
-								console.log("Import type:", importType);
+								logger.log("Component:", componentName);
+								logger.log("Import type:", importType);
 							}
 						}
 					}
@@ -455,7 +535,7 @@ function handleNode(node: ts.Node): ImportStatement[] {
 	} else if (ts.isClassDeclaration(node)) {
 		// Handle class declarations
 		const className = node.name?.getText();
-		console.log("Class name:", className);
+		logger.log("Class name:", className);
 	}
 	// Add more conditions for different types of nodes you want to handle
 	return componentDeclarations;
@@ -737,19 +817,26 @@ function transformTraversedTags(
 }
 
 function parseTsx(fileContent: string, filePath: string) {
-	const jsxContent = transformSync(fileContent, {
+	const transformOpt = {
 		filename: filePath,
-		presets: ["@babel/preset-typescript"],
-		plugins: ["@vue/babel-plugin-jsx"],
+		presets: [
+			createConfigItem(require(`@babel/preset-typescript`)),
+			// createConfigItem(require(`@babel/preset-react`)),
+		],
+		plugins: [
+			//createConfigItem(require("@vue/babel-plugin-jsx")),
+			createConfigItem(require("@babel/plugin-transform-typescript")),
+		],
 		comments: false,
-	});
+	};
+	const jsxContent = transformSync(fileContent, transformOpt);
+	// const jsxAst = transformSync(fileContent, { ...transformOpt, ast: true });
 	const componentTags: TraversedTag[] = [];
-	try {
-		const parsedTsx = domParse(jsxContent?.code!, { comments: false });
-		const textNodes = parsedTsx?.children.filter(
-			(ele) => ele.type === NodeTypes.TEXT
-		);
+	let deepestNested = 0;
 
+	try {
+		const parsedTsx = parseDOM(jsxContent?.code!, { comments: false });
+		const textNodes = parsedTsx?.children.filter((ele) => ele.type === 1);
 		for (const el of textNodes) {
 			const { source } = el.loc;
 			const ast = babelParse(source, {
@@ -757,7 +844,68 @@ function parseTsx(fileContent: string, filePath: string) {
 				sourceType: "module",
 				plugins: ["jsx"],
 			});
+			deepestNested = Math.max(
+				deepestNested,
+				findDeepestJSXElementNestingLevel(ast)
+			);
+			traverse(ast, {
+				JSXElement(path: any) {
+					// Extract the tag name
+					const tagName = path.node.openingElement.name.name;
+					const line = path.node.openingElement.name.loc.start.line;
+					componentTags.push({ tag: tagName, row: line });
+				},
+				CallExpression(path: any) {
+					const { node } = path;
+					if (
+						node.callee?.name?.includes("createVNode") &&
+						node.arguments?.length >= 1
+					) {
+						const stringNodes = node.arguments
+							.filter((i: any) => i.type === "StringLiteral")
+							.map((i: any) => {
+								return { tag: i.value, row: i.loc.start.line };
+							});
+						const identifierNodes = node.arguments
+							.filter((i: any) => i.type === "Identifier")
+							.map((i: any) => {
+								return { tag: i.name, row: i.loc.start.line };
+							});
+						componentTags.push(...identifierNodes);
+					}
+				},
+			});
+		}
+	} catch (error) {
+		throw error;
+	}
 
+	return {
+		componentTags,
+		deepestNested,
+	};
+}
+
+function traverseVueJSXContent(filePath: string, jsxContent: any) {
+	const componentTags: TraversedTag[] = [];
+	let deepestNested = 0;
+	try {
+		const parsedJsx = parseDOM(jsxContent?.code!, { comments: false });
+
+		const textNodes = parsedJsx?.children.filter(
+			(ele) => ele.type === NodeTypes.TEXT
+		);
+		for (const el of textNodes) {
+			const { source } = el.loc;
+			const ast = babelParse(source, {
+				sourceFilename: filePath,
+				sourceType: "module",
+				plugins: ["jsx"],
+			});
+			deepestNested = Math.max(
+				deepestNested,
+				findDeepestJSXElementNestingLevel(ast)
+			);
 			traverse(ast, {
 				CallExpression(path: any) {
 					const { node } = path;
@@ -780,13 +928,13 @@ function parseTsx(fileContent: string, filePath: string) {
 				},
 			});
 		}
-		// if (filePath.endsWith("Home.tsx")) logger.debug({ tags });
 	} catch (error) {
 		throw error;
 	}
 
 	return {
 		componentTags,
+		deepestNested,
 	};
 }
 
@@ -823,7 +971,7 @@ function categorizeTag(
 function getTsxProps(fileContent: string, filePath: string) {
 	const jsx = transformSync(fileContent, {
 		filename: filePath,
-		presets: ["@babel/preset-typescript"],
+		presets: [createConfigItem(require(`@babel/preset-typescript`))],
 		comments: false,
 	});
 

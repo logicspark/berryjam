@@ -1,0 +1,329 @@
+[
+  {
+    "name": "custom-comp",
+    "type": "internal",
+    "total": 2,
+    "source": {
+      "path": "/example-js/CustomComp.vue",
+      "property": {
+        "dataLastModified": "",
+        "lastModified": "",
+        "created": "",
+        "createdBy": "",
+        "updatedBy": ""
+      }
+    },
+    "usageLocations": [
+      {
+        "name": "custom-comp",
+        "source": "",
+        "destination": "/example-vue/AVueComposition.vue",
+        "rows": [
+          6
+        ],
+        "fileInfo": {
+          "path": "/example-js/CustomComp.vue",
+          "property": {
+            "dataLastModified": "",
+            "lastModified": "",
+            "created": "",
+            "createdBy": "",
+            "updatedBy": ""
+          }
+        }
+      },
+      {
+        "name": "custom-comp",
+        "source": "/example-js/CustomComp.vue",
+        "destination": "/example-js/AVueOption.vue",
+        "rows": [
+          3
+        ],
+        "fileInfo": {
+          "path": "/Users/kittisak/REPO/berryjam/berryjam/tests/example/example-js/CustomComp.vue",
+          "property": {
+            "dataLastModified": "",
+            "lastModified": "",
+            "created": "",
+            "createdBy": "",
+            "updatedBy": ""
+          }
+        }
+      }
+    ],
+    "children": {
+      "total": 0,
+      "tags": [],
+      "source": "/example-js/CustomComp.vue"
+    }
+  },
+  {
+    "name": "AvuOption",
+    "type": null,
+    "total": 2,
+    "source": {
+      "path": "",
+      "property": {
+        "dataLastModified": "",
+        "lastModified": "",
+        "created": "",
+        "createdBy": "",
+        "updatedBy": ""
+      }
+    },
+    "usageLocations": [
+      {
+        "name": "AvuOption",
+        "source": "",
+        "destination": "/example-js/CJsOption.js",
+        "rows": [
+          4
+        ],
+        "fileInfo": {
+          "path": "",
+          "property": {
+            "dataLastModified": "",
+            "lastModified": "",
+            "created": "",
+            "createdBy": "",
+            "updatedBy": ""
+          }
+        }
+      },
+      {
+        "name": "AvuOption",
+        "source": "",
+        "destination": "/example-js/AJsOption.js",
+        "rows": [
+          4
+        ],
+        "fileInfo": {
+          "path": "",
+          "property": {
+            "dataLastModified": "",
+            "lastModified": "",
+            "created": "",
+            "createdBy": "",
+            "updatedBy": ""
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "router-link",
+    "type": null,
+    "total": 2,
+    "source": {
+      "path": "",
+      "property": {
+        "dataLastModified": "",
+        "lastModified": "",
+        "created": "",
+        "createdBy": "",
+        "updatedBy": ""
+      }
+    },
+    "usageLocations": [
+      {
+        "name": "router-link",
+        "source": "",
+        "destination": "/example-scan-project/src/App.vue",
+        "rows": [
+          3,
+          4
+        ],
+        "fileInfo": {
+          "path": "",
+          "property": {
+            "dataLastModified": "",
+            "lastModified": "",
+            "created": "",
+            "createdBy": "",
+            "updatedBy": ""
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "router-view",
+    "type": null,
+    "total": 1,
+    "source": {
+      "path": "",
+      "property": {
+        "dataLastModified": "",
+        "lastModified": "",
+        "created": "",
+        "createdBy": "",
+        "updatedBy": ""
+      }
+    },
+    "usageLocations": [
+      {
+        "name": "router-view",
+        "source": "",
+        "destination": "/example-scan-project/src/App.vue",
+        "rows": [
+          6
+        ],
+        "fileInfo": {
+          "path": "",
+          "property": {
+            "dataLastModified": "",
+            "lastModified": "",
+            "created": "",
+            "createdBy": "",
+            "updatedBy": ""
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "Home",
+    "type": "internal",
+    "total": 1,
+    "source": {
+      "path": "/example-scan-project/src/views/Home.tsx",
+      "property": {
+        "dataLastModified": "",
+        "lastModified": "",
+        "created": "",
+        "createdBy": "",
+        "updatedBy": ""
+      }
+    },
+    "usageLocations": [
+      {
+        "name": "Home",
+        "source": "",
+        "destination": "/example-scan-project/src/App.vue",
+        "rows": [
+          7
+        ],
+        "fileInfo": {
+          "path": "/example-scan-project/src/views/Home.tsx",
+          "property": {
+            "dataLastModified": "",
+            "lastModified": "",
+            "created": "",
+            "createdBy": "",
+            "updatedBy": ""
+          }
+        }
+      }
+    ],
+    "children": {
+      "total": 2,
+      "tags": [
+        "ExampleOne",
+        "ExampleTwo"
+      ],
+      "source": "/example-scan-project/src/views/Home.tsx"
+    }
+  },
+  {
+    "name": "ExampleOne",
+    "type": "internal",
+    "total": 1,
+    "source": {
+      "path": "/example-scan-project/src/components/ExampleOne.tsx",
+      "property": {
+        "dataLastModified": "",
+        "lastModified": "",
+        "created": "",
+        "createdBy": "",
+        "updatedBy": ""
+      }
+    },
+    "usageLocations": [
+      {
+        "name": "ExampleOne",
+        "source": "/example-scan-project/src/components/ExampleOne.tsx",
+        "destination": "/example-scan-project/src/views/Home.tsx",
+        "rows": [
+          16
+        ],
+        "fileInfo": {
+          "path": "/example-scan-project/src/components/ExampleOne.tsx",
+          "property": {
+            "dataLastModified": "",
+            "lastModified": "",
+            "created": "",
+            "createdBy": "",
+            "updatedBy": ""
+          }
+        }
+      }
+    ],
+    "children": {
+      "total": 0,
+      "tags": [],
+      "source": "/example-scan-project/src/components/ExampleOne.tsx"
+    },
+    "properties": [
+      {
+        "name": "msg",
+        "type": "string"
+      },
+      {
+        "name": "obj",
+        "type": "object"
+      },
+      {
+        "name": "items",
+        "type": "array"
+      },
+      {
+        "name": "onClick",
+        "type": "Function"
+      },
+      {
+        "name": "slotWrapItem",
+        "type": "Function"
+      }
+    ]
+  },
+  {
+    "name": "ExampleTwo",
+    "type": "internal",
+    "total": 1,
+    "source": {
+      "path": "/example-scan-project/src/components/ExampleTwo.tsx",
+      "property": {
+        "dataLastModified": "",
+        "lastModified": "",
+        "created": "",
+        "createdBy": "",
+        "updatedBy": ""
+      }
+    },
+    "usageLocations": [
+      {
+        "name": "ExampleTwo",
+        "source": "/example-scan-project/src/components/ExampleTwo.tsx",
+        "destination": "/example-scan-project/src/views/Home.tsx",
+        "rows": [
+          33
+        ],
+        "fileInfo": {
+          "path": "/example-scan-project/src/components/ExampleTwo.tsx",
+          "property": {
+            "dataLastModified": "",
+            "lastModified": "",
+            "created": "",
+            "createdBy": "",
+            "updatedBy": ""
+          }
+        }
+      }
+    ],
+    "children": {
+      "total": 0,
+      "tags": [],
+      "source": "/example-scan-project/src/components/ExampleTwo.tsx"
+    }
+  }
+]

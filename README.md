@@ -7,7 +7,7 @@
   </a>
 </div>
 
-<h1 align="center">UI Components Anaylzer for Vue 3 & Nuxt</h1>
+<h1 align="center">UI Components Analyzer for Vue 3 & Nuxt</h1>
 
 <div align="center">
   Scan your Vue.js codebase for component visibility and actionable insights.
@@ -116,13 +116,43 @@ async function whatEverFunction() {
   const result = await vueScanner.scan();
 }
 
-
 ```
+_Note: For a **Nuxt** project, please ensure that you have a `.nuxt` folder before scanning._
+
+<br/>
+
+The `VueScanner` function takes two parameters as follow: 
+- The first parameter is the path of the project to be scanned.
+- The second is an option object that utilizes the `VueScannerOption` interface.
+
+Here is the detailed description of each available option within the `VueScannerOption` interface:
+
+### VueScannerOption Interface
+
+| Property   | Type                     | Description                                                         |
+|------------|--------------------------|---------------------------------------------------------------------|
+| `appDir`   | `string`                 | The path of the project directory to be scanned.                    |
+| `output`   | `OutputFormat` (optional)| The desired output format of the scanned result. (JSON by default)  |
+| `ignore`   | `string[]` (optional)    | An array of file names or directory names to exclude from scanning. |
+| `verbose`  | `boolean` (optional)     | Enable verbose mode for more detailed scanning information.         |
+| `debug`    | `boolean` (optional)     | Operate the scanner in debug mode, providing debugging information. |
+
+### OutputFormat Type
+
+The `OutputFormat` type represents available output formats.
+
+| Type       | Description                                                                                         |
+|------------|-----------------------------------------------------------------------------------------------------|
+| `"json"`   | Output the scanned result in JSON format and saved as 'component-profiles.json' within the 'appDir'.|
+| `"stdout"` | Display the scanned result directly in the console (stdout).                                        |
+
+These options and types offer flexibility and customization when using the `VueScanner` function to analyze Vue.js projects.
+
 For more details on `VueScanner` class, please check out [below](#VueScanner-Overview).
 
 ### Output
 
-By calling `scan` method, it will scan for Vue components and return `ComponentProfile[]`. If you `console.log` the output, here is an example of how it may look. For demonstration purposes, we have scanned an open-source project called [Koel](https://github.com/koel/koel).
+By calling the `scan` method, it will scan for Vue components and return `ComponentProfile[]`. Here is an example of how it may look. For demonstration purposes, we have scanned an open-source project called [Koel](https://github.com/koel/koel).
 
 <details open>
   <summary>Sample Result</summary>

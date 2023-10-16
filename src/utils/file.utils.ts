@@ -1,6 +1,7 @@
 import { writeFile, existsSync, mkdirSync, readFileSync } from "fs";
 import { join, dirname, basename, resolve } from "path";
 import { glob } from "glob";
+import logger from "./logger";
 
 export const createHomeDirIfNotExist = (appHomeDirectory: string): string => {
 	// create the app directory if it doesn't exist
@@ -61,23 +62,23 @@ export async function getSupportedFiles(
 		files = filterIgnoredDir(files, ignorePatterns.map(transformStringToRegex));
 		return files;
 	} catch (error) {
-		console.error(error);
+		logger.log(error);
 		return [];
 	}
 }
 
 export const writeResultToFile = (
 	relativeFilePath: string,
-	data: any
+	data: string
 ): Promise<string> => {
 	const filePath = resolve(relativeFilePath);
 	return new Promise<string>((resolve, reject) => {
-		writeFile(filePath, JSON.stringify(data), (err) => {
+		writeFile(filePath, data, (err) => {
 			if (err) {
-				console.error("Error saving file:", err);
+				logger.log("Error saving file:", err);
 				reject(err);
 			} else {
-				console.log(`File saved: ${filePath}`);
+				logger.log(`File saved: ${filePath}`);
 				resolve(filePath);
 			}
 		});

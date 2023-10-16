@@ -132,7 +132,6 @@ export class GitService {
 					}
 					continue;
 				}
-
 				if (line.startsWith("Binary files")) {
 					if (currentFile) {
 						currentFile.binaryChange = true;
