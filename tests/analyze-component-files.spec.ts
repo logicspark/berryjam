@@ -242,6 +242,7 @@ describe("Remove duplicate components", () => {
 				usageLocations: [],
 				groups: [],
 				children: { total: 1, tags: ["Button"], source: "" },
+				deepestNested: 0,
 			});
 
 		const received = vueScanner.removeDuplicateComponents(componentProfiles);
