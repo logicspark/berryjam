@@ -31,11 +31,18 @@ export interface ChildComponentTag {
 
 export type ComponentSourceType = "internal" | "external" | null;
 
+export type ImportStatementUsage = {
+	lines: Record<string, number[]>;
+	dynamic: boolean;
+	importPath: string;
+};
 export interface ImportStatement {
 	importedNames: string[];
 	source: string;
+	destination: string;
 	importSourceType: ComponentSourceType;
 	sourcePath?: string;
+	usage?: ImportStatementUsage;
 }
 
 export interface VueProperty {
@@ -47,6 +54,7 @@ export interface VueProperty {
 export interface ParsedCodeResult {
 	componentTags: TraversedTag[];
 	importStatements: ImportStatement[] | null;
+	deepestNested: number;
 	properties?: VueProperty[];
 }
 export interface FileProperty {
@@ -59,7 +67,7 @@ export interface FileProperty {
 }
 export interface FileInfo {
 	path: string;
-	property: FileProperty;
+	property: FileProperty | null;
 }
 
 export interface VueComponent {
@@ -67,6 +75,7 @@ export interface VueComponent {
 	source: string;
 	destination: string;
 	rows: number[];
+	deepestNested: number;
 	fileInfo: FileInfo;
 	props?: VueProperty[];
 }
@@ -76,6 +85,7 @@ export interface ComponentProfile {
 	type: ComponentSourceType;
 	total: number;
 	source: FileInfo & { package?: LibDependency };
+	deepestNested: number;
 	properties?: VueProperty[];
 	usageLocations?: VueComponent[];
 	groups?: any;

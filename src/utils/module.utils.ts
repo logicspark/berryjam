@@ -1,15 +1,15 @@
-import { resolve, join, extname, dirname } from "path";
+import { resolve, join, extname, dirname, basename } from "path";
 import BabelParser from "@babel/parser";
 import { existsSync } from "fs";
 import { loadConfig } from "tsconfig-paths";
 import { glob } from "glob";
 import { getFileInfo } from "./file.utils";
-import type { ImportStatement } from "../types";
+import type { ImportStatement, ImportStatementUsage } from "../types";
 import logger from "./logger";
 const traverse = require("@babel/traverse").default;
 
 export const traverseImports = (
-	currentDir: string,
+	filePath: string,
 	content: string,
 	babelParse: (
 		s: string,
@@ -28,13 +28,15 @@ export const traverseImports = (
 			plugins,
 		});
 		let mappedImportList: ImportStatement[] = [];
+		const importStatementUsages: ImportStatementUsage[] = [];
+		const { currentDir } = getFileInfo(filePath);
 		traverse(ast, {
 			ImportDeclaration(astPath: any) {
-				prepareMappedImportDeclaration(mappedImportList, currentDir, astPath);
+				prepareMappedImportDeclaration(mappedImportList, filePath, astPath);
 			},
 			// Vue dynamic import with defineAsyncComponent
 			VariableDeclarator(astPath: any) {
-				prepareMappedVariableDeclarator(mappedImportList, currentDir, astPath);
+				prepareMappedVariableDeclarator(mappedImportList, filePath, astPath);
 			},
 			ExportDefaultDeclaration(astPath: any) {
 				let properties = astPath.node.declaration.properties;
@@ -77,6 +79,7 @@ export const traverseImports = (
 										importedNames: [componentName],
 										source: isRelative ? resolve(currentDir, source) : source,
 										importSourceType: isRelative ? "internal" : "external",
+										destination: filePath,
 									} as ImportStatement;
 									mappedImportList.push(currentImportLine);
 								}
@@ -85,7 +88,71 @@ export const traverseImports = (
 					}
 				});
 			},
+			ObjectProperty(path: any) {
+				if (
+					path.node.key.type === "Identifier" &&
+					path.node.key.name === "component"
+				) {
+					if (
+						path.node.value.type === "ArrowFunctionExpression" &&
+						path.node.value.body.type === "CallExpression" &&
+						path.node.value.body.callee.type === "Import"
+					) {
+						const nodeValue = path.node.value.body.arguments[0];
+						const importPath = String(nodeValue.value);
+						const line = Number(nodeValue.loc.start.line);
+						importStatementUsages.push({
+							lines: { [filePath]: [line] },
+							dynamic: true,
+							importPath,
+						} as ImportStatementUsage);
+					} else {
+						//mean using the import statement
+						//if (filePath?.includes("router.ts")) {
+						const { name } = path.node.value;
+						const found = mappedImportList.find((ele) =>
+							ele.importedNames.includes(name)
+						);
+						if (found) {
+							found.usage = {
+								lines: {
+									[filePath]: [Number(path.node.value.loc.start.line ?? 0)],
+								},
+								dynamic: false,
+								importPath: found.source,
+							};
+						}
+						// }
+					}
+				}
+			},
 		});
+		if (importStatementUsages.length) {
+			// process dynamic import
+			const dynamicMappedImports = importStatementUsages.reduce(
+				(acc, usage) => {
+					const { importPath } = usage;
+					const normalizedName = basename(importPath).replace(
+						extname(importPath),
+						""
+					);
+					const importedNames = [normalizedName];
+					const isRelative = /^\./.test(importPath);
+					const currentImportLine: ImportStatement = {
+						importedNames,
+						source: isRelative ? resolve(currentDir, importPath) : importPath,
+						importSourceType: isRelative ? "internal" : "external",
+						destination: filePath,
+						usage,
+					};
+					acc.push(currentImportLine);
+					return acc;
+				},
+				[] as ImportStatement[]
+			);
+
+			mappedImportList.push(...dynamicMappedImports);
+		}
 		return mappedImportList.length ? mappedImportList : null;
 	} catch (e) {
 		throw e;
@@ -94,7 +161,7 @@ export const traverseImports = (
 
 export function prepareMappedImportDeclaration(
 	mappedImportList: ImportStatement[],
-	currentDir: string,
+	filePath: string,
 	astPath: any
 ) {
 	const importStatement = astPath.node;
@@ -104,19 +171,21 @@ export function prepareMappedImportDeclaration(
 			return specifier.local.name as string;
 		}
 	);
+	const { currentDir } = getFileInfo(filePath);
 	const source = importStatement.source.value;
 	const isRelative = /^\./.test(source);
 	const currentImportLine = {
 		importedNames,
 		source: isRelative ? resolve(currentDir, source) : source,
 		importSourceType: isRelative ? "internal" : "external",
+		destination: filePath,
 	} as ImportStatement;
 	mappedImportList.push(currentImportLine);
 }
 
 function prepareMappedVariableDeclarator(
 	mappedImportList: ImportStatement[],
-	currentDir: string,
+	filePath: string,
 	astPath: any
 ) {
 	const { id, init } = astPath.node;
@@ -129,12 +198,14 @@ function prepareMappedVariableDeclarator(
 		if (!variableName) {
 			return;
 		}
+		const { currentDir } = getFileInfo(filePath);
 		const source = findDefineAsyncComponentStringLiteral(init.arguments);
 		const isRelative = /^\./.test(source);
 		const currentImportLine = {
 			importedNames: [variableName],
 			source: isRelative ? resolve(currentDir, source) : source,
 			importSourceType: isRelative ? "internal" : "external",
+			destination: filePath,
 		} as ImportStatement;
 		mappedImportList.push(currentImportLine);
 	}
@@ -249,7 +320,7 @@ export async function getViteAliasPaths(
 	}
 	const viteConfigFilePath = foundConfigFiles.at(0);
 	const extension = extname(viteConfigFilePath!);
-	console.debug({ viteConfigFilePath, extension });
+
 	const plugins: any[] = extension === ".ts" ? ["typescript"] : [];
 	const { fileContent } = getFileInfo(viteConfigFilePath!);
 	const ast = babelParse(fileContent, {
@@ -300,7 +371,6 @@ export async function getViteAliasPaths(
 			}
 		},
 	});
-	console.debug({ pathAlias }, "finished traverse export");
 	return Object.keys(pathAlias).length ? pathAlias : null;
 }
 
