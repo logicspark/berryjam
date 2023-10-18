@@ -102,3 +102,26 @@ export const checkFileTypeExists = (
 	}
 	return { exists: existsSync(filePath), filePath };
 };
+
+export const writeGlobJson = (
+	appHomeDirectory: string,
+	data: string,
+	filename = "data.json"
+) => {
+	const appDirectoryPath = createHomeDirIfNotExist(appHomeDirectory);
+	const filePath = join(appDirectoryPath, filename);
+	return new Promise<string>((resolve, reject) => {
+		writeFile(filePath, data, (err) => {
+			if (err) {
+				console.error("Error saving file:", err);
+				reject(err);
+			} else {
+				resolve(filePath);
+			}
+		});
+	});
+};
+
+export const supportFileType = (): string[] => {
+	return ["vue", "js", "json", "ts", "tsx", "jsx"];
+};
