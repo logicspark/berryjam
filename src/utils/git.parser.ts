@@ -190,11 +190,9 @@ export class GitParser {
 							this.currentCommit.author = matches[1];
 							this.currentCommit.email = matches[2];
 						} else {
-							console.log(line);
 							exit();
 						}
 					} else {
-						console.log(line);
 						exit();
 					}
 				} else if (line.indexOf("Date: ") === 0) {
