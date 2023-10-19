@@ -264,7 +264,7 @@ export class GitService {
 	 * Scan git log of the project to retrieve relevant git history such as.
 	 * author, datetime and file changes to output as a JSON file.
 	 */
-	scan = () => {
+	scan = async () => {
 		const currentCommitHash = this.executeCommand(`git rev-parse HEAD`);
 
 		if (currentCommitHash) {
@@ -288,7 +288,7 @@ export class GitService {
 					}
 				}
 			}
-			writeGlobJson(
+			await writeGlobJson(
 				this.appDir,
 				JSON.stringify({ origin: this.getOrigin(), result }, null, 2),
 				this.jsonfile
