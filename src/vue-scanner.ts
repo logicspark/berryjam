@@ -821,6 +821,15 @@ export class VueScanner implements Scanner {
 	}
 
 	/**
+	 * Scans the Git repository for components in the specified directory and
+	 * creates a `git-parsed-diff.json` file in the target directory.
+	 */
+	scanGit() {
+		logger.log("Start git scanning");
+		return new GitService(this.option.appDir, this.scanPath).scan();
+	}
+
+	/**
 	 * Scan the project directory for Vue components, analyzes their structure, and collects information.
 	 *
 	 * @returns A promise that resolves an array of component profiles.
@@ -1076,7 +1085,7 @@ export class VueScanner implements Scanner {
 		this.mapComponentProfileProps(filePathToProperties);
 		if (existsSync(join(this.scanPath, ".git"))) {
 			// Use Git Scan
-			new GitService(this.option.appDir, this.scanPath).scan();
+			await this.scanGit();
 		}
 
 		if (this.option?.output) {
