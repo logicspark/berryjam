@@ -8,6 +8,8 @@ import {
 	getSupportedFiles,
 	transformStringToRegex,
 	writeResultToFile,
+	getEndOfLine,
+	getFileInfo,
 } from "./utils/file.utils";
 import { DEF_IGNORE_FILES, SUPPORT_EXT } from "./utils/constants";
 import type {
@@ -23,6 +25,7 @@ import type {
 	VueComponent,
 	OutputFormat,
 	ImportStatementUsage,
+	FileProperty,
 } from "./types";
 import { spawnSync } from "node:child_process";
 import {
@@ -515,7 +518,7 @@ export class VueScanner implements Scanner {
 							updatedBy: "",
 						},
 					},
-				};
+				} as VueComponent;
 				this.vueComponents.push(vueComponent);
 			}
 		});
@@ -689,7 +692,7 @@ export class VueScanner implements Scanner {
 					created: "",
 					createdBy: "",
 					updatedBy: "",
-				};
+				} as FileProperty;
 				ele.children = { total: 0, tags: [], source: "" };
 				if (importSourceType === "internal") {
 					children.forEach((child) => {
@@ -925,13 +928,20 @@ export class VueScanner implements Scanner {
 					// assume it is component, store all file into `componentFiles`
 					const name = parse(filePath).name;
 					componentFiles.push({ name, filePath });
+					const { fileContent } = getFileInfo(filePath);
+					const endOfLines = getEndOfLine(fileContent);
 					const vueComponent: VueComponent = {
 						name,
 						source: filePath,
 						destination: filePath,
 						rows: [],
 						deepestNested,
-						fileInfo: { path: "", property: null },
+						fileInfo: {
+							path: "",
+							property: {
+								endOfLines,
+							} as FileProperty,
+						},
 					};
 					this.vueComponents.push(vueComponent);
 				}

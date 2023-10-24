@@ -102,3 +102,12 @@ export const checkFileTypeExists = (
 	}
 	return { exists: existsSync(filePath), filePath };
 };
+
+export const getEndOfLine = (fileContent: string) => {
+	let endOfLine = 0;
+	const numberOfLine = fileContent.split(/\r\n|\r|\n/).length;
+	if (numberOfLine) {
+		endOfLine = numberOfLine;
+	}
+	return endOfLine;
+};

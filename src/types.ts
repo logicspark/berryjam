@@ -63,6 +63,7 @@ export interface FileProperty {
 	updatedBy: string;
 	lastModified: string;
 	dataLastModified: string;
+	endOfLines?: number;
 	package?: { name: string; version: string }; // TODO: check this key later
 }
 export interface FileInfo {
