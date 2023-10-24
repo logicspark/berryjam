@@ -1,6 +1,6 @@
 {
 	"name": "berryjam",
-	"version": "0.1.0-alpha.54",
+	"version": "0.1.0-alpha.57",
 	"description": "Berryjam helps you analyze and optimize your Vue.js component code with ease. Save time communicating and effort in development to create better, more efficient code.",
 	"private": false,
 	"exports": {
@@ -91,6 +91,7 @@
 		"@vue/compiler-dom": "^3.3.4",
 		"@vue/compiler-sfc": "^3.3.4",
 		"app-root-path": "^3.1.0",
+		"child_process": "^1.0.2",
 		"glob": "^10.3.3",
 		"lodash": "^4.17.21",
 		"shelljs": "^0.8.5",
