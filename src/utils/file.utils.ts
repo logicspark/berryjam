@@ -103,6 +103,10 @@ export const checkFileTypeExists = (
 	return { exists: existsSync(filePath), filePath };
 };
 
+export const getEndOfLine = (fileContent: string) => {
+	return fileContent.split(/\r\n|\r|\n/).length;
+};
+
 export const writeGlobJson = (
 	appHomeDirectory: string,
 	data: string,
