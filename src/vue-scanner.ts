@@ -692,6 +692,7 @@ export class VueScanner implements Scanner {
 					created: "",
 					createdBy: "",
 					updatedBy: "",
+					...componentSource.property,
 				} as FileProperty;
 				ele.children = { total: 0, tags: [], source: "" };
 				if (importSourceType === "internal") {
