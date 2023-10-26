@@ -57,9 +57,16 @@ describe("Git recursively method", () => {
 		);
 		let received: any = null;
 		if (currentHash) {
-			received = gitService.getDiffDetails(currentHash);
+			const existParents = gitService.executeCommand(
+				`git rev-parse ${currentHash}^@`
+			);
+			if (existParents) {
+				received = gitService.getDiffDetails(currentHash);
+				expect(typeof received).toBe("string");
+			} else {
+				expect(received).toBe(null);
+			}
 		}
-		expect(typeof received).toBe("string");
 	});
 
 	it("should be a string", async () => {

@@ -1,6 +1,5 @@
-import { ExecException, execSync } from "child_process";
+import { execSync } from "child_process";
 import { ParsedGitDiff } from "../interfaces/git.services.interfaces";
-import _ from "lodash";
 import { writeGlobJson } from "./file.utils";
 import { GitParser } from "./git.parser";
 
@@ -64,6 +63,10 @@ export class GitService {
 	 * @returns A string of information taken from git diff details.
 	 */
 	getDiffDetails(commitHash: string) {
+		const existParent = this.executeCommand(`git rev-parse ${commitHash}^@`);
+		if (!existParent) {
+			return null;
+		}
 		return this.executeCommand(`git diff ${commitHash}~ ${commitHash}`);
 	}
 

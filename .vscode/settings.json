@@ -3,5 +3,6 @@
 	"prettier.configPath": ".prettierrc",
 	"prettier.requireConfig": true,
 	"editor.formatOnSave": true,
-	"prettier.htmlWhitespaceSensitivity": "strict"
+	"prettier.htmlWhitespaceSensitivity": "strict",
+	"cSpell.words": ["datetime"]
 }
