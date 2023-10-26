@@ -63,13 +63,11 @@ export class GitService {
 	 * @returns A string of information taken from git diff details.
 	 */
 	getDiffDetails(commitHash: string) {
-		const existParent = this.executeCommand(
-			`git rev-parse --quiet ${commitHash}^@`
-		);
+		const existParent = this.executeCommand(`git rev-parse ${commitHash}^@`);
 		if (!existParent) {
 			return null;
 		}
-		return this.executeCommand(`git diff --quiet ${commitHash}~ ${commitHash}`);
+		return this.executeCommand(`git diff ${commitHash}~ ${commitHash}`);
 	}
 
 	/**
