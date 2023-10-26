@@ -502,6 +502,8 @@ export class VueScanner implements Scanner {
 				if (ignorePatterns.some((pattern) => source.match(pattern))) {
 					return;
 				}
+				const { fileContent } = getFileInfo(filePath);
+				const endOfLines = getEndOfLine(fileContent);
 				const vueComponent = {
 					name: tag,
 					source,
@@ -516,6 +518,7 @@ export class VueScanner implements Scanner {
 							created: "",
 							createdBy: "",
 							updatedBy: "",
+							endOfLines,
 						},
 					},
 				} as VueComponent;
