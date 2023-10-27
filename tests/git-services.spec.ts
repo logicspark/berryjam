@@ -58,7 +58,7 @@ describe("Git recursively method", () => {
 		let received: any = null;
 		if (currentHash) {
 			const existParents = gitService.executeCommand(
-				`git rev-parse ${currentHash}^@`
+				`git rev-parse "${currentHash}^@"`
 			);
 			if (existParents) {
 				received = gitService.getDiffDetails(currentHash);
