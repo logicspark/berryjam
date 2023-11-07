@@ -84,12 +84,11 @@ export interface VueComponent {
 export interface ComponentProfile {
 	name: string;
 	type: ComponentSourceType;
-	total: number;
+	usage: number;
 	source: FileInfo & { package?: LibDependency };
 	deepestNested: number;
-	properties?: VueProperty[];
 	usageLocations?: VueComponent[];
-	groups?: any;
+	properties?: VueProperty[];
 	children?: { total: number; tags: string[]; source: string };
 }
 

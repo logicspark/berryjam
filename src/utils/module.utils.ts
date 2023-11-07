@@ -108,7 +108,6 @@ export const traverseImports = (
 						} as ImportStatementUsage);
 					} else {
 						//mean using the import statement
-						//if (filePath?.includes("router.ts")) {
 						const { name } = path.node.value;
 						const found = mappedImportList.find((ele) =>
 							ele.importedNames.includes(name)
@@ -122,7 +121,6 @@ export const traverseImports = (
 								importPath: found.source,
 							};
 						}
-						// }
 					}
 				}
 			},
@@ -222,12 +220,10 @@ export async function getCodeConfigCompilerOptionPaths(
 	for (const fPath of foundConfigFiles.filter(
 		(ele) => !ele.includes("/node_modules/")
 	)) {
-		// logger.debug({ fPath });
 		try {
 			const result = loadConfig(fPath);
 			const { resultType } = result;
 			if ("success" === resultType) {
-				// logger.debug({ result }, "[Func] getCodeConfigCompilerOptionPaths");
 				const { absoluteBaseUrl, paths, baseUrl } = result;
 				pathsResult = {
 					...pathsResult,
