@@ -1109,16 +1109,20 @@ export class VueScanner implements Scanner {
 				foundUsageLocations?.filter((ele) => ele.rows.length) ?? [];
 			// If there's a foundImportWithUsage, add it to the component's usageLocations
 			if (foundImportWithUsage) {
-				const tmpVueComponent = {
-					name: "",
-					source:
-						foundImportWithUsage.sourcePath ?? foundImportWithUsage.source,
-					destination: foundImportWithUsage.destination,
-					rows: foundImportWithUsage.usage!.lines[
-						foundImportWithUsage.destination
-					],
-				} as VueComponent;
-				arr[idx].usageLocations!.push(tmpVueComponent);
+				const { usage } = foundImportWithUsage;
+				if (usage?.lines) {
+					Object.keys(usage.lines).forEach((destPath) => {
+						const rows = usage.lines[destPath];
+						const tmpVueComponent = {
+							name: "",
+							source:
+								foundImportWithUsage.sourcePath ?? foundImportWithUsage.source,
+							destination: destPath,
+							rows,
+						} as VueComponent;
+						arr[idx].usageLocations!.push(tmpVueComponent);
+					});
+				}
 			}
 		});
 
