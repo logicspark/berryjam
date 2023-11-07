@@ -47,6 +47,7 @@ import {
 } from "./utils/text.utils";
 import { GitService } from "./utils/git.services";
 import logger from "./utils/logger";
+import { Dictionary } from "lodash";
 
 type CompilerSFC = typeof import("@vue/compiler-sfc");
 type BabelParser = typeof import("@babel/parser");
@@ -498,7 +499,7 @@ export class VueScanner implements Scanner {
 			if (foundSourceElem) {
 				foundSourceElem.rows.push(row);
 			} else {
-				// Check if the file path matchs in the `ignorePatterns` array.
+				// Check if the file path matches in the `ignorePatterns` array.
 				if (ignorePatterns.some((pattern) => source.match(pattern))) {
 					return;
 				}
@@ -758,7 +759,7 @@ export class VueScanner implements Scanner {
 				{ values: [] as ComponentProfile[], indices: [] as number[] }
 			);
 			duplicatedTagWithIndices.values.forEach((dup, i) => {
-				const { usageLocations, total } = dup;
+				const { usageLocations } = dup;
 				const newDetails = usageLocations?.map((e) => {
 					e.source = source;
 					return e;
@@ -776,7 +777,6 @@ export class VueScanner implements Scanner {
 						}
 					});
 				}
-				ele.total += total;
 			});
 			duplicatedTagWithIndices.indices.forEach((deleteIdx) => {
 				deletedIdxList.push(deleteIdx);
@@ -796,6 +796,61 @@ export class VueScanner implements Scanner {
 		this.componentProfiles.forEach((ele) => {
 			ele.properties = filePathToProperties[ele.source.path];
 		});
+	}
+
+	/**
+	 * Revises and normalizes a dictionary of grouped Vue component sources.
+	 * This function takes a dictionary of Vue component sources and performs normalization on the keys, ensuring that components with similar names but different naming conventions are correctly merged.
+	 * It also ensures that components with the same source and destination are merged into a single entry.
+	 * @param groupedComponentSources - The dictionary of grouped Vue component sources.
+	 * @returns The revised and normalized dictionary of Vue component sources.
+	 */
+	reviseGroupedComponentSources(
+		groupedComponentSources: Dictionary<VueComponent[]>
+	) {
+		let revisedGroupedComponentSources = Object.entries(
+			groupedComponentSources
+		).reduce(
+			(acc, [key, value]) => {
+				// Normalize the key by replacing "__" with "-"
+				const [tagName, sourcePath] = key.split("__");
+				const kebabCase = pascalCaseToKebabCase(tagName);
+				const pascalCase = kebabCaseToPascalCase(tagName);
+				const foundKey = Object.keys(acc).find((k) =>
+					[
+						`${kebabCase}__${sourcePath}`,
+						`${pascalCase}__${sourcePath}`,
+					].includes(k)
+				);
+				// Check if the normalized key exists in the merged object
+				if (foundKey) {
+					// If it exists, merge the arrays
+					acc[foundKey] = acc[foundKey].concat(value);
+				} else {
+					// If it doesn't exist, create a new key with the value
+					acc[key] = value;
+				}
+				return acc;
+			},
+			{} as Record<string, VueComponent[]>
+		);
+
+		return Object.entries(revisedGroupedComponentSources).reduce(
+			(acc, [k, v]) => {
+				const camelFound = v.find(
+					(ele) => ele.source && ele.source === ele.destination
+				);
+				if (camelFound) {
+					const { name } = camelFound;
+					const keySourceSplitted = k.split("__");
+					acc[`${name}__${keySourceSplitted[1]}`] = v;
+				} else {
+					acc[k] = v;
+				}
+				return acc;
+			},
+			{} as Record<string, VueComponent[]>
+		);
 	}
 
 	/**
@@ -1006,46 +1061,24 @@ export class VueScanner implements Scanner {
 			));
 
 		// Revises a grouped object of component sources by merging entries with similar keys.
-		const revisedGroupedComponentSources = Object.entries(
+		const revisedGroupedComponentSources = this.reviseGroupedComponentSources(
 			groupedComponentSources
-		).reduce(
-			(acc, [key, value]) => {
-				// Split the key into tagName and sourcePath
-				const [tagName, sourcePath] = key.split("__");
-				// Convert tagName to kebab-case and camelCase
-				const kebabCase = pascalCaseToKebabCase(tagName);
-				const pascalCase = kebabCaseToPascalCase(tagName);
-				// Find an existing key that matches either kebab-case or pascalCase
-				const foundKey = Object.keys(acc).find((k) =>
-					[
-						`${kebabCase}__${sourcePath}`,
-						`${pascalCase}__${sourcePath}`,
-					].includes(k)
-				);
-				// If a matching key is found, merge the values; otherwise, create a new entry
-				if (foundKey) {
-					acc[foundKey] = acc[foundKey].concat(value);
-				} else {
-					acc[key] = value;
-				}
-				return acc;
-			},
-			{} as Record<string, VueComponent[]>
 		);
 		// Create component profiles from grouped sources.
 		this.componentProfiles = Object.entries(revisedGroupedComponentSources).map(
 			(ele) => {
 				const vueComponents = ele[1];
-				const { name, fileInfo, source, deepestNested } = vueComponents.at(0)!;
+				const ownComponentFile = vueComponents.find(
+					(ele) => ele.source && ele.source === ele.destination
+				);
+				const { name, fileInfo, source, deepestNested } =
+					ownComponentFile ?? vueComponents.at(0)!;
 				fileInfo.path = source;
-				const total = vueComponents.reduce((sum, i) => {
-					sum += i.rows.length;
-					return sum;
-				}, 0);
+
 				return {
 					name,
 					type: existsSync(source) ? "internal" : null,
-					total,
+					usage: 0,
 					deepestNested,
 					source: fileInfo,
 				} as ComponentProfile;
@@ -1073,7 +1106,7 @@ export class VueScanner implements Scanner {
 			);
 			// Initialize the component's usageLocations property with foundUsageLocations
 			arr[idx].usageLocations =
-				foundUsageLocations.filter((ele) => ele.rows.length) ?? [];
+				foundUsageLocations?.filter((ele) => ele.rows.length) ?? [];
 			// If there's a foundImportWithUsage, add it to the component's usageLocations
 			if (foundImportWithUsage) {
 				const tmpVueComponent = {
@@ -1096,6 +1129,17 @@ export class VueScanner implements Scanner {
 		this.componentProfiles = this.removeDuplicateComponents(
 			this.componentProfiles
 		);
+
+		// revise component usage
+		this.componentProfiles.forEach((comp) => {
+			const { usageLocations } = comp;
+			const totalUsage =
+				usageLocations?.reduce((sum, i) => {
+					sum += i.rows.length;
+					return sum;
+				}, 0) ?? 0;
+			comp.usage = totalUsage;
+		});
 		this.mapComponentProfileProps(filePathToProperties);
 		if (existsSync(join(this.scanPath, ".git"))) {
 			// Use Git Scan
