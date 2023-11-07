@@ -207,7 +207,7 @@ describe("Remove duplicate components", () => {
 		componentProfiles.push({
 			name: "Button",
 			type: "internal",
-			total: 0,
+			usage: 0,
 			deepestNested: 0,
 			source: {
 				path: "C:/projects/berryjam-cli/public/Components/Header.js",
@@ -221,7 +221,6 @@ describe("Remove duplicate components", () => {
 			},
 			properties: [],
 			usageLocations: [],
-			groups: [],
 			children: { total: 1, tags: ["Button"], source: "" },
 		});
 		// Push 2nd object
@@ -229,7 +228,7 @@ describe("Remove duplicate components", () => {
 			name: "Button",
 			type: "internal",
 			deepestNested: 0,
-			total: 0,
+			usage: 0,
 			source: {
 				path: "C:/projects/berryjam-cli/public/Components/Header.js",
 				property: {
@@ -242,7 +241,6 @@ describe("Remove duplicate components", () => {
 			},
 			properties: [],
 			usageLocations: [],
-			groups: [],
 			children: { total: 1, tags: ["Button"], source: "" },
 		});
 
