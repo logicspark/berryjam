@@ -658,6 +658,7 @@ export class VueScanner implements Scanner {
 	) {
 		this.componentProfiles.forEach((ele) => {
 			const { name, source: componentSource } = ele;
+			ele.children = { total: 0, tags: [], source: "" };
 			const transformedTag = kebabCaseToPascalCase(name);
 			// Find imported tags that match the transformed or original component tag name
 			const foundImportedTags = importStatements.filter((im) =>
@@ -698,7 +699,6 @@ export class VueScanner implements Scanner {
 					updatedBy: "",
 					...componentSource.property,
 				} as FileProperty;
-				ele.children = { total: 0, tags: [], source: "" };
 				if (importSourceType === "internal") {
 					children.forEach((child) => {
 						if ([sourcePath, source].includes(child.source)) {
@@ -1089,9 +1089,14 @@ export class VueScanner implements Scanner {
 				`${this.option.appDir}/revisedGroupedComponentSources.json`,
 				JSON.stringify(revisedGroupedComponentSources, null, 2)
 			));
+		const dupCompIdxList: number[] = [];
 		this.componentProfiles.forEach((ele, idx, arr) => {
 			const tagName = ele.name,
 				source = ele.source.path;
+			if (!source && arr.find((i) => i.name === tagName && i.source.path)) {
+				dupCompIdxList.push(idx);
+				return;
+			}
 			// Create a unique key for the component based on the tagName and source path
 			const key = source ? `${tagName}__${source}` : tagName;
 			// Find usage locations for the component based on the key
@@ -1125,6 +1130,10 @@ export class VueScanner implements Scanner {
 				}
 			}
 		});
+		// remove components without source filepath
+		this.componentProfiles = this.componentProfiles.filter(
+			(_, i) => !dupCompIdxList.includes(i)
+		);
 
 		this.mapComponentProfileSource(allImportStatements, children, {
 			dependencies,
@@ -1147,7 +1156,7 @@ export class VueScanner implements Scanner {
 		this.mapComponentProfileProps(filePathToProperties);
 		if (existsSync(join(this.scanPath, ".git"))) {
 			// Use Git Scan
-			await this.scanGit();
+			// await this.scanGit();
 		}
 
 		if (this.option?.output) {
