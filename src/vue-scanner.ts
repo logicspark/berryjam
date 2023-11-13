@@ -658,6 +658,7 @@ export class VueScanner implements Scanner {
 	) {
 		this.componentProfiles.forEach((ele) => {
 			const { name, source: componentSource } = ele;
+			ele.children = { total: 0, tags: [], source: "" };
 			const transformedTag = kebabCaseToPascalCase(name);
 			// Find imported tags that match the transformed or original component tag name
 			const foundImportedTags = importStatements.filter((im) =>
@@ -698,7 +699,6 @@ export class VueScanner implements Scanner {
 					updatedBy: "",
 					...componentSource.property,
 				} as FileProperty;
-				ele.children = { total: 0, tags: [], source: "" };
 				if (importSourceType === "internal") {
 					children.forEach((child) => {
 						if ([sourcePath, source].includes(child.source)) {
