@@ -1089,9 +1089,14 @@ export class VueScanner implements Scanner {
 				`${this.option.appDir}/revisedGroupedComponentSources.json`,
 				JSON.stringify(revisedGroupedComponentSources, null, 2)
 			));
+		const dupCompIdxList: number[] = [];
 		this.componentProfiles.forEach((ele, idx, arr) => {
 			const tagName = ele.name,
 				source = ele.source.path;
+			if (!source && arr.find((i) => i.name === tagName && i.source.path)) {
+				dupCompIdxList.push(idx);
+				return;
+			}
 			// Create a unique key for the component based on the tagName and source path
 			const key = source ? `${tagName}__${source}` : tagName;
 			// Find usage locations for the component based on the key
@@ -1125,6 +1130,10 @@ export class VueScanner implements Scanner {
 				}
 			}
 		});
+		// remove components without source filepath
+		this.componentProfiles = this.componentProfiles.filter(
+			(_, i) => !dupCompIdxList.includes(i)
+		);
 
 		this.mapComponentProfileSource(allImportStatements, children, {
 			dependencies,
@@ -1147,7 +1156,7 @@ export class VueScanner implements Scanner {
 		this.mapComponentProfileProps(filePathToProperties);
 		if (existsSync(join(this.scanPath, ".git"))) {
 			// Use Git Scan
-			await this.scanGit();
+			// await this.scanGit();
 		}
 
 		if (this.option?.output) {
