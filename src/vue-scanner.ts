@@ -977,7 +977,12 @@ export class VueScanner implements Scanner {
 						vueModule: vueCompilerMod as CompilerSFC,
 						babelModule: babelParserMod as BabelParser,
 					});
-				if ([".vue", ".jsx", ".tsx"].includes(extname(filePath))) {
+				const isInNuxtPages =
+					nuxtVersion && filePath.includes(`${this.scanPath}/pages`);
+				const isComponentFile = [".vue", ".jsx", ".tsx"].includes(
+					extname(filePath)
+				);
+				if (isComponentFile && !isInNuxtPages) {
 					// assume it is component, store all file into `componentFiles`
 					const name = parse(filePath).name;
 					componentFiles.push({ name, filePath });
@@ -1156,7 +1161,7 @@ export class VueScanner implements Scanner {
 		this.mapComponentProfileProps(filePathToProperties);
 		if (existsSync(join(this.scanPath, ".git"))) {
 			// Use Git Scan
-			// await this.scanGit();
+			await this.scanGit();
 		}
 
 		if (this.option?.output) {
