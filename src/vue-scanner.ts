@@ -349,7 +349,12 @@ export class VueScanner implements Scanner {
 	 * @returns A Promise that resolves to an object containing merged alias paths.
 	 */
 	async prepareAliasPaths(packageJsonPath: string, babelParser: BabelParser) {
-		let aliasPaths = await getCodeConfigCompilerOptionPaths(packageJsonPath);
+		let aliasPaths: Record<string, string[]> | null = null;
+		try {
+			aliasPaths = await getCodeConfigCompilerOptionPaths(packageJsonPath);
+		} catch (error) {
+			logger.log(error);
+		}
 		const vitePath = await getViteAliasPaths(
 			packageJsonPath,
 			babelParser.parse

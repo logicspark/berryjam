@@ -220,33 +220,29 @@ export async function getCodeConfigCompilerOptionPaths(
 	for (const fPath of foundConfigFiles.filter(
 		(ele) => !ele.includes("/node_modules/")
 	)) {
-		try {
-			const result = loadConfig(fPath);
-			const { resultType } = result;
-			if ("success" === resultType) {
-				const { absoluteBaseUrl, paths, baseUrl } = result;
-				pathsResult = {
-					...pathsResult,
-					...Object.entries(paths).reduce(
-						(obj, p) => {
-							const key = p[0],
-								value = p[1];
-							if (typeof value == "object") {
-								const newValue = value.map((ele: string) =>
-									join(`${absoluteBaseUrl}`, ele)
-								);
-								obj[key] = newValue;
-							} else {
-								obj[key] = value;
-							}
-							return obj;
-						},
-						{} as Record<string, string[]>
-					),
-				};
-			}
-		} catch (error) {
-			console.error(error, "[Func] getCodeConfigCompilerOptionPaths");
+		const result = loadConfig(fPath);
+		const { resultType } = result;
+		if ("success" === resultType) {
+			const { absoluteBaseUrl, paths } = result;
+			pathsResult = {
+				...pathsResult,
+				...Object.entries(paths).reduce(
+					(obj, p) => {
+						const key = p[0],
+							value = p[1];
+						if (typeof value == "object") {
+							const newValue = value.map((ele: string) =>
+								join(`${absoluteBaseUrl}`, ele)
+							);
+							obj[key] = newValue;
+						} else {
+							obj[key] = value;
+						}
+						return obj;
+					},
+					{} as Record<string, string[]>
+				),
+			};
 		}
 	}
 	return Object.keys(pathsResult)?.length ? pathsResult : null;
